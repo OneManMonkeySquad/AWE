@@ -1,11 +1,14 @@
 #pragma once
 
-struct ALLEGRO_DISPLAY;
+#include "renderer.h"
+
 struct ALLEGRO_EVENT_QUEUE;
+struct renderer_state;
 
 struct engine_state {
-    ALLEGRO_DISPLAY* display;
     ALLEGRO_EVENT_QUEUE* event_queue;
+
+    renderer_state* renderer;
 };
 
 engine_state* create_engine();

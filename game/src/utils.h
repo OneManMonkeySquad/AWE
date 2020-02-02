@@ -1,9 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <process.h>
 
-inline void panic() {
-    __debugbreak();
-    abort();
-}
+void panic();
+
+void debug_print(const char* lpFmt, ...);

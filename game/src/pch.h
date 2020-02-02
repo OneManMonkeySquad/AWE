@@ -1,7 +1,10 @@
 #pragma once
 
+#define NOMINMAX
+
 #include <iostream>
 #include <chrono>
+#include <algorithm>
 
 #include <entt/entt.hpp>
 

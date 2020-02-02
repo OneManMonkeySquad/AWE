@@ -3,23 +3,27 @@
 struct position {
     float x;
     float y;
+
+    float magnitude() const {
+        return sqrt(x * x + y * y);
+    }
 };
 
 position operator+(position lhs, position rhs);
 position operator-(position lhs, position rhs);
 position operator*(position lhs, float rhs);
 position operator*(float lhs, position rhs);
+position operator/(position lhs, float rhs);
+position& operator+=(position& lhs, position rhs);
 
 struct velocity {
     float dx;
     float dy;
 };
 
-struct ai_agent {
+using tree = entt::tag<"tree"_hs>;
 
-};
-
-void init_game(entt::registry& state);
+entt::registry create_game();
 
 void update(entt::registry& state);
-
+void update_camera(entt::registry& state, float delta_time_ms);
