@@ -55,7 +55,7 @@ void draw_tilemap(const renderer_state* renderer) {
 renderer_state* create_renderer() {
     auto new_renderer = new renderer_state();
 
-    al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_OPENGL_3_0);
+    al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_FRAMELESS);
     new_renderer->display = al_create_display(1280, 1024);
     al_set_window_title(new_renderer->display, "Awe");
 

@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ai.cpp" />
+    <ClCompile Include="src\ai_actions.cpp" />
     <ClCompile Include="src\engine.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\input.cpp" />
@@ -109,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ai.h" />
+    <ClInclude Include="src\ai_actions.h" />
     <ClInclude Include="src\engine.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\input.h" />
