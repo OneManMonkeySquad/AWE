@@ -5,68 +5,70 @@
 #include "utils.h"
 #include "renderer.h"
 #include "ai_actions.h"
+#include <string>
 
-struct ai_global_data {
-    entt::observer ai_agent_created;
-    std::vector< entt::delegate< action_result(entt::registry&, action_context&) > > actions;
-};
 
-using plan = std::vector<action>;
+plan create_plan();
 
-struct ai_agent_system_data {
-    plan current_plan;
-    action current_action;
-};
+
+template<auto FuncUpdateT>
+void add_action(ai_global_data& global_data) {
+    global_data.actions.push_back({ entt::connect_arg<FuncUpdateT> });
+}
+
 
 void init_ai(entt::registry& state) {
     auto& global_data = state.ctx_or_set<ai_global_data>();
     global_data.ai_agent_created.connect(state, entt::collector.group<ai_agent>());
 
-    global_data.actions = {
-        {},
-        { entt::connect_arg<&target_tree> },
-        { entt::connect_arg<&goto_target> },
-        { entt::connect_arg<&kill_tree> }
-    };
+    add_action<&target_tree>(global_data);
+    add_action<&kill_target>(global_data);
+
+    add_action<&goto_target>(global_data);
+
+    add_action<&target_deer>(global_data);
+
+    add_action<&target_axe>(global_data);
+
+    add_action<&pickup_target_item>(global_data);
+
+    add_action<&target_human>(global_data);
 }
 
-plan create_plan() {
-    plan p;
-    p.push_back({ action_type::kill_tree });
-    p.push_back({ action_type::goto_target });
-    p.push_back({ action_type::target_tree });
-    return p;
-}
 
 void update_ai(entt::registry& state) {
     ai_global_data& global_data = state.ctx<ai_global_data>();
 
     global_data.ai_agent_created.each([&](entt::entity e) {
         state.assign<ai_agent_system_data>(e);
-        debug_print("Assigned system data to %u", (uint32_t)e);
     });
 
-    state.view<ai_agent, ai_agent_system_data, position>().each([&state, &global_data](ai_agent& agent, ai_agent_system_data& system_data, position& pos) {
-        auto& current_action = system_data.current_action;
+    auto ai_agents = state.view<ai_agent, ai_agent_system_data, position>();
+    for (auto agent_entity : ai_agents) {
+        auto& agent = ai_agents.get<ai_agent>(agent_entity);
+        auto& agent_system_data = ai_agents.get<ai_agent_system_data>(agent_entity);
+
+        auto& current_action = agent_system_data.current_action;
         if (current_action.type != action_type::none) {
-            assert(static_cast<size_t>(current_action.type) < global_data.actions.size());
+            assert(static_cast<size_t>(current_action.type) <= global_data.actions.size()); // <= weil erster action_type::none ist
 
-            const auto& action = global_data.actions[static_cast<unsigned int>(current_action.type)];
+            debug_draw_world_text(state, state.get<position>(agent_entity) + math::vector2{ 40, 40 }, action_type_name[static_cast<unsigned int>(current_action.type)]);
 
-            action_context ctx{ 
+            const auto& action = global_data.actions[static_cast<unsigned int>(current_action.type) - 1]; // -1 weil erster action_type::none ist
+
+            action_context ctx{
                 current_action.type,
-                agent, 
-                pos 
+                agent,
+                agent_entity
             };
             const auto result = action(state, ctx);
             switch (result) {
             case action_result::in_progress:
-                return;
+                continue;
 
             case action_result::failed:
-                debug_print("Action failed");
                 current_action.type = action_type::none;
-                system_data.current_plan.clear();
+                agent_system_data.current_plan.clear();
 
             case action_result::succeeded:
                 break;
@@ -74,12 +76,35 @@ void update_ai(entt::registry& state) {
         }
 
         // Nächste Aktion
-        if (!system_data.current_plan.empty()) {
-            system_data.current_action = system_data.current_plan.back();
-            system_data.current_plan.pop_back();
+        if (!agent_system_data.current_plan.empty()) {
+            agent_system_data.current_action = agent_system_data.current_plan.back();
+            agent_system_data.current_plan.pop_back();
         }
         else {
-            system_data.current_plan = create_plan();
+            agent_system_data.current_plan = create_plan();
         }
-    });
+    }
+}
+
+
+plan create_plan() {
+    plan p;
+
+    p.push_back({ action_type::kill_target });
+    p.push_back({ action_type::goto_target });
+    p.push_back({ action_type::target_human });
+
+    p.push_back({ action_type::kill_target });
+    p.push_back({ action_type::goto_target });
+    p.push_back({ action_type::target_deer });
+
+    p.push_back({ action_type::kill_target });
+    p.push_back({ action_type::goto_target });
+    p.push_back({ action_type::target_tree });
+
+    p.push_back({ action_type::pickup_target_item });
+    p.push_back({ action_type::goto_target });
+    p.push_back({ action_type::target_axe });
+
+    return p;
 }

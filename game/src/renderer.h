@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math.h"
 #include "engine.h"
 #include "game.h"
 

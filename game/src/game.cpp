@@ -4,32 +4,11 @@
 #include "renderer.h"
 #include "input.h"
 #include "ai.h"
+#include "utils.h"
 
-position operator+(position l, position r) {
-    return { l.x + r.x, l.y + r.y };
-}
 
-position operator-(position l, position r) {
-    return { l.x - r.x, l.y - r.y };
-}
 
-position operator*(position l, float r) {
-    return { l.x * r, l.y * r };
-}
 
-position operator*(float l, position r) {
-    return { l * r.x, l * r.y };
-}
-
-position operator/(position l, float r) {
-    return { l.x / r, l.y / r };
-}
-
-position& operator+=(position& l, position r) {
-    l.x += r.x;
-    l.y += r.y;
-    return l;
-}
 
 entt::registry create_game() {
     entt::registry state;
@@ -42,14 +21,24 @@ entt::registry create_game() {
         state.assign<position>(entity, float(rand() % 1500), float(rand() % 1500));
         state.assign<sprite>(entity, enemy);
         state.assign<ai_agent>(entity);
+        state.assign<inventory>(entity);
     }
 
-    auto deer = al_load_bitmap("data/deer.png");
+    auto deer_bmp = al_load_bitmap("data/deer.png");
     for (auto i = 0; i < 10; ++i) {
         auto entity = state.create();
         state.assign<position>(entity, float(rand() % 1500), float(rand() % 1500));
-        state.assign<sprite>(entity, deer);
-        state.assign<velocity>(entity, ((rand() * 12345 + 46789) % 30) * 0.35f, ((rand() * 546788784563 + 123456) % 30) * .25f);
+        state.assign<sprite>(entity, deer_bmp);
+        state.assign<velocity>(entity, ((rand() * 12345 + 46789) % 30) * 0.25f, ((rand() * 546788784563 + 123456) % 30) * .15f);
+        state.assign<deer>(entity);
+    }
+
+    auto axe_bmp = al_load_bitmap("data/axe.png");
+    for (auto i = 0; i < 10; ++i) {
+        auto entity = state.create();
+        state.assign<position>(entity, float(rand() % 1500), float(rand() % 1500));
+        state.assign<sprite>(entity, axe_bmp);
+        state.assign<item>(entity, item_type::axe);
     }
 
     auto tree_bmp = al_load_bitmap("data/tree.png");
@@ -68,6 +57,7 @@ entt::registry create_game() {
     return state;
 }
 
+
 void update_physics(entt::registry& state) {
     state.group<position, velocity>().each([](auto& pos, auto& vel) {
         pos.x += vel.dx;
@@ -79,15 +69,18 @@ void update_physics(entt::registry& state) {
     });
 
     state.view<velocity>().each([](auto& velocity) {
-        velocity.dx *= 0.999f;
-        velocity.dy *= 0.999f;
+        velocity.dx *= 0.9f;
+        velocity.dy *= 0.9f;
     });
 }
 
+
 void update(entt::registry& state) {
+    update_utils(state);
     update_physics(state);
     update_ai(state);
 }
+
 
 void update_camera(entt::registry& state, float delta_time_ms) {
     auto& cam = state.ctx<camera>();
@@ -96,4 +89,65 @@ void update_camera(entt::registry& state, float delta_time_ms) {
     cam.zoom = std::clamp(cam.zoom + inp.wheel * delta_time_ms * 0.05f, 0.4f, 1.8f);
     cam.position.x += (inp.d - inp.a) * delta_time_ms * cam.zoom * 0.5f;
     cam.position.y += (inp.s - inp.w) * delta_time_ms * cam.zoom * 0.5f;
+}
+
+
+void kill(entt::registry& state, entt::entity target) {
+    if (state.has<deer>(target)) {
+        auto tree_stump = al_load_bitmap("data/dead_deer.png");
+        state.remove<velocity>(target);
+        state.replace<sprite>(target, tree_stump);
+        state.remove<deer>(target);
+    }
+    else if (state.has<tree>(target)) {
+        auto tree_stump = al_load_bitmap("data/tree_stump.png");
+        state.replace<sprite>(target, tree_stump);
+        state.remove<tree>(target);
+
+        auto sp = al_load_bitmap("data/wood.png");
+        auto pos = state.get<position>(target);
+        for (int i = 0; i < 3; ++i) {
+            auto new_wood = state.create();
+            state.assign<position>(new_wood, pos);
+            state.assign<sprite>(new_wood, sp);
+            state.assign<wood>(new_wood);
+            state.assign<velocity>(new_wood, 0.8f * (rand() % 20 - 10), 0.8f * (rand() % 20 - 10));
+        }
+    }
+    else {
+        state.destroy(target);
+    }
+}
+
+
+bool inventory_add_item(entt::registry& state, inventory& inventory, entt::entity new_item) {
+    assert(state.has<item>(new_item));
+
+    for (auto i = 0; i < inventory.items.size(); ++i) {
+        if (inventory.items[i] == entt::null) {
+            inventory.items[i] = new_item;
+
+            debug_print("added item at %d", i);
+
+            if (state.has<position>(new_item)) {
+                state.remove<position>(new_item);
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool inventory_has_item_of_type(entt::registry& state, const inventory& inventory, item_type type) {
+    for (auto i = 0; i < inventory.items.size(); ++i) {
+        if (inventory.items[i] == entt::null)
+            return false;
+
+        auto it = state.get<item>(inventory.items[i]);
+        if (it.type == type)
+            return true;
+    }
+    return false;
 }

@@ -6,7 +6,9 @@
 #include "utils.h"
 #include "input.h"
 
+
 using namespace std;
+
 
 int main(int argc, char** argv) {
     using clock = chrono::high_resolution_clock;
@@ -19,6 +21,8 @@ int main(int argc, char** argv) {
     auto time_start = clock::now();
 
     entt::registry current_state = create_game();
+    init_utils(current_state);
+
     entt::registry previous_state;
 
     bool quit_game = false;

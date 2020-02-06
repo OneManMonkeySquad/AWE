@@ -25,7 +25,7 @@ engine_state* create_engine() {
     auto new_engine = new engine_state;
 
     new_engine->renderer = create_renderer();
-
+    
     new_engine->event_queue = al_create_event_queue();
     al_register_event_source(new_engine->event_queue, al_get_display_event_source(new_engine->renderer->display));
     al_register_event_source(new_engine->event_queue, al_get_keyboard_event_source());
