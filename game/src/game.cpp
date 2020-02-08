@@ -16,7 +16,7 @@ entt::registry create_game() {
     init_ai(state);
 
     auto enemy = al_load_bitmap("data/enemy.png");
-    for (auto i = 0; i < 10; ++i) {
+    for (auto i = 0; i < 1; ++i) {
         auto entity = state.create();
         state.assign<position>(entity, float(rand() % 1500), float(rand() % 1500));
         state.assign<sprite>(entity, enemy);
@@ -98,6 +98,16 @@ void kill(entt::registry& state, entt::entity target) {
         state.remove<velocity>(target);
         state.replace<sprite>(target, tree_stump);
         state.remove<deer>(target);
+
+        auto sp = al_load_bitmap("data/meat.png");
+        auto pos = state.get<position>(target);
+        for (int i = 0; i < 3; ++i) {
+            auto new_meat = state.create();
+            state.assign<position>(new_meat, pos);
+            state.assign<sprite>(new_meat, sp);
+            state.assign<item>(new_meat, item_type::meat);
+            state.assign<velocity>(new_meat, 0.4f * (rand() % 20 - 10), 0.4f * (rand() % 20 - 10));
+        }
     }
     else if (state.has<tree>(target)) {
         auto tree_stump = al_load_bitmap("data/tree_stump.png");
@@ -110,7 +120,7 @@ void kill(entt::registry& state, entt::entity target) {
             auto new_wood = state.create();
             state.assign<position>(new_wood, pos);
             state.assign<sprite>(new_wood, sp);
-            state.assign<wood>(new_wood);
+            state.assign<item>(new_wood, item_type::wood);
             state.assign<velocity>(new_wood, 0.8f * (rand() % 20 - 10), 0.8f * (rand() % 20 - 10));
         }
     }
@@ -120,12 +130,14 @@ void kill(entt::registry& state, entt::entity target) {
 }
 
 
-bool inventory_add_item(entt::registry& state, inventory& inventory, entt::entity new_item) {
+bool inventory_add_item(entt::registry& state, entt::entity inventory_owner, entt::entity new_item) {
     assert(state.has<item>(new_item));
 
-    for (auto i = 0; i < inventory.items.size(); ++i) {
-        if (inventory.items[i] == entt::null) {
-            inventory.items[i] = new_item;
+    auto& inv = state.get<inventory>(inventory_owner);
+
+    for (auto i = 0; i < inv.items.size(); ++i) {
+        if (inv.items[i] == entt::null) {
+            inv.items[i] = new_item;
 
             debug_print("added item at %d", i);
 
@@ -140,14 +152,34 @@ bool inventory_add_item(entt::registry& state, inventory& inventory, entt::entit
 }
 
 
-bool inventory_has_item_of_type(entt::registry& state, const inventory& inventory, item_type type) {
-    for (auto i = 0; i < inventory.items.size(); ++i) {
-        if (inventory.items[i] == entt::null)
+bool inventory_has_item_of_type(entt::registry& state, entt::entity inventory_owner, item_type type) {
+    auto& inv = state.get<inventory>(inventory_owner);
+
+    for (auto i = 0; i < inv.items.size(); ++i) {
+        if (inv.items[i] == entt::null)
             return false;
 
-        auto it = state.get<item>(inventory.items[i]);
+        auto it = state.get<item>(inv.items[i]);
         if (it.type == type)
             return true;
     }
     return false;
+}
+
+
+entt::entity inventory_remove_item_of_type(entt::registry& state, entt::entity inventory_owner, item_type type) {
+    auto& inv = state.get<inventory>(inventory_owner);
+
+    for (auto i = 0; i < inv.items.size(); ++i) {
+        if (inv.items[i] == entt::null)
+            return entt::null;
+
+        auto it = state.get<item>(inv.items[i]);
+        if (it.type == type) {
+            auto item = inv.items[i];
+            inv.items[i] = entt::null;
+            return item;
+        }
+    }
+    return entt::null;
 }

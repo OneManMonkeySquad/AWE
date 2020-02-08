@@ -5,93 +5,84 @@
 #include "renderer.h"
 
 
-action_result target_tree(entt::registry& state, action_context& ctx) {
-    auto trees = state.view<tree>();
-    if (trees.empty())
-        return action_result::failed;
+bool goto_target(entt::registry& state, action_context& ctx) {
+    if (!state.valid(ctx.agent.target))
+        return false;
 
-    ctx.agent.target = trees[rand() % trees.size()];
-    return action_result::succeeded;
+    auto target_pos = state.try_get<position>(ctx.agent.target);
+    if (target_pos == nullptr)
+        return false;
+
+    auto& pos = state.get<position>(ctx.agent_entity);
+
+    auto diff = (*target_pos - pos);
+    auto dist = diff.magnitude();
+
+    const auto move_speed = 6;
+    pos += dist > move_speed ? (diff / dist) * move_speed : diff;
+
+    return dist < 1;
 }
 
 
-action_result kill_target(entt::registry& state, action_context& ctx) {
-    if (!state.valid(ctx.agent.target) /*|| !state.has<tree>(ctx.agent.target)*/)
-        return action_result::failed;
+action_result hunt_deer(entt::registry& state, action_context& ctx) {
+    auto target_invalid = !state.valid(ctx.agent.target) || !state.has<deer>(ctx.agent.target);
+    if (target_invalid) {
+        auto deers = state.view<deer>();
+        if (deers.empty())
+            return action_result::failed;
+
+        ctx.agent.target = deers[rand() % deers.size()];
+    }
+
+    if (!goto_target(state, ctx))
+        return action_result::in_progress;
 
     kill(state, ctx.agent.target);
     return action_result::succeeded;
 }
 
 
-action_result goto_target(entt::registry& state, action_context& ctx) {
-    if (!state.valid(ctx.agent.target))
-        return action_result::failed;
+action_result pickup_meat(entt::registry& state, action_context& ctx) {
+    auto target_invalid = !state.valid(ctx.agent.target) || !state.has<item>(ctx.agent.target);
+    if (target_invalid || state.get<item>(ctx.agent.target).type != item_type::meat) {
+        auto items = state.view<item, position>();
+        if (items.empty())
+            return action_result::failed;
 
-    auto* target_pos = state.try_get<position>(ctx.agent.target);
-    if (target_pos == nullptr)
-        return action_result::failed;
-
-    auto& pos = state.get<position>(ctx.agent_entity);
-    debug_draw_world_line(state, pos, *target_pos);
-    auto target_offset = (*target_pos - pos);
-    auto target_dist = target_offset.magnitude();
-    if (target_dist <= 1.f)
-        return action_result::succeeded;
-
-    pos += target_dist > 2.f ? (target_offset / target_dist) * 2 : target_offset;
-    return action_result::in_progress;
-}
-
-
-action_result target_deer(entt::registry& state, action_context& ctx) {
-    auto deers = state.view<deer>();
-    if (deers.empty())
-        return action_result::failed;
-
-    ctx.agent.target = deers[rand() % deers.size()];
-    return action_result::succeeded;
-}
-
-
-action_result target_axe(entt::registry& state, action_context& ctx) {
-    ctx.agent.target = entt::null;
-
-    std::vector<entt::entity> axes;
-
-    auto items = state.view<item, position>(); // position weil wir nur Items auf dem Boden wollen
-    for (auto e : items) {
-        auto it = items.get<item>(e);
-        if (it.type == item_type::axe) {
-            axes.push_back(e);
+        std::vector<entt::entity> meats;
+        for (auto item_entity : items) {
+            auto it = items.get<item>(item_entity);
+            if (it.type == item_type::meat) {
+                meats.push_back(item_entity);
+            }
         }
+        if (meats.empty())
+            return action_result::failed;
+
+        ctx.agent.target = meats[rand() % meats.size()];
     }
 
-    if (axes.empty())
-        return action_result::failed;
+    if (!goto_target(state, ctx))
+        return action_result::in_progress;
 
-    ctx.agent.target = axes[rand() % axes.size()];
+    inventory_add_item(state, ctx.agent_entity, ctx.agent.target);
     return action_result::succeeded;
 }
 
 
-action_result pickup_target_item(entt::registry& state, action_context& ctx) {
-    if (!state.valid(ctx.agent.target) || !state.has<item>(ctx.agent.target))
-        return action_result::failed;
-
+action_result eat_meat(entt::registry& state, action_context& ctx) {
     auto& inv = state.get<inventory>(ctx.agent_entity);
-    if (!inventory_add_item(state, inv, ctx.agent.target))
+    
+    if (!inventory_has_item_of_type(state, ctx.agent_entity, item_type::meat))
         return action_result::failed;
-
-    return action_result::succeeded;
-}
-
-
-action_result target_human(entt::registry& state, action_context& ctx) {
-    auto ais = state.view<ai_agent>();
-    if (ais.empty())
+    
+    auto item = inventory_remove_item_of_type(state, ctx.agent_entity, item_type::meat);
+    if (item == entt::null)
         return action_result::failed;
+    
+    state.destroy(item);
+    ctx.agent.hunger = 0;
 
-    ctx.agent.target = ais[rand() % ais.size()];
     return action_result::succeeded;
 }

@@ -12,7 +12,9 @@ struct velocity {
 };
 
 enum class item_type {
-    axe
+    axe,
+    meat,
+    wood
 };
 
 struct item {
@@ -25,7 +27,6 @@ struct inventory {
 
 using tree = entt::tag<"tree"_hs>;
 using deer = entt::tag<"deer"_hs>;
-using wood = entt::tag<"wood"_hs>;
 
 entt::registry create_game();
 
@@ -34,5 +35,6 @@ void update_camera(entt::registry& state, float delta_time_ms);
 
 void kill(entt::registry& state, entt::entity target);
 
-bool inventory_add_item(entt::registry& state, inventory& inventory, entt::entity new_item);
-bool inventory_has_item_of_type(entt::registry& state, const inventory& inventory, item_type type);
+bool inventory_add_item(entt::registry& state, entt::entity inventory_owner, entt::entity new_item);
+bool inventory_has_item_of_type(entt::registry& state, entt::entity inventory_owner, item_type type);
+entt::entity inventory_remove_item_of_type(entt::registry& state, entt::entity inventory_owner, item_type type);
