@@ -5,12 +5,17 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <filesystem>
+#include <string>
+#include <format>
+#include <thread>
 
-#include <entt/entt.hpp>
+#include "entt/entt.hpp"
 
-#include <allegro5/allegro.h>
-#include <allegro5/system.h>
-#include <allegro5/display.h>
-#include <allegro5/allegro_primitives.h>
-#include <allegro5/allegro_image.h>
-#include <allegro5/allegro_ttf.h>
+#include "imgui/imgui.h"
+
+#include "allegro5/allegro5.h"
+#include "allegro5/allegro_font.h"
+#include "allegro5/allegro_ttf.h"
+#include "allegro5/allegro_image.h"
+#include "allegro5/allegro_primitives.h"

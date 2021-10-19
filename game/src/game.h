@@ -1,39 +1,50 @@
 #pragma once
 
-namespace math {
-struct vector2;
-}
+#include "math.h"
 
-using position = math::vector2;
+class engine;
+class input;
+
+struct global_state {
+	int tick = 0;
+	bool paused = false;
+};
+
+struct transform {
+	math::vector2 position;
+	float angle;
+};
 
 struct velocity {
-    float dx;
-    float dy;
+	float dx;
+	float dy;
+	float angular;
 };
 
 enum class item_type {
-    axe,
-    meat,
-    wood
+	axe,
+	meat,
+	wood
 };
 
 struct item {
-    item_type type;
+	item_type type;
 };
 
 struct inventory {
-    std::array<entt::entity, 3> items = { entt::null ,entt::null ,entt::null };
+	std::array<entt::entity, 3> items = { entt::null, entt::null, entt::null };
 };
 
-using tree = entt::tag<"tree"_hs>;
-using deer = entt::tag<"deer"_hs>;
+struct tree {};
+struct deer {};
+struct kill {};
 
-entt::registry create_game();
+entt::registry game_create(engine& engine);
 
-void update(entt::registry& state);
-void update_camera(entt::registry& state, float delta_time_ms);
+void game_create_commands_from_input(entt::registry& state, input& input);
+void game_run_tick(entt::registry& state, engine& engine);
 
-void kill(entt::registry& state, entt::entity target);
+void kill_deer(entt::registry& state, entt::entity target);
 
 bool inventory_add_item(entt::registry& state, entt::entity inventory_owner, entt::entity new_item);
 bool inventory_has_item_of_type(entt::registry& state, entt::entity inventory_owner, item_type type);

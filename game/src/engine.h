@@ -1,15 +1,24 @@
 #pragma once
 
-#include "renderer.h"
-
 struct ALLEGRO_EVENT_QUEUE;
-struct renderer_state;
+class renderer;
+class input;
 
-struct engine_state {
-    ALLEGRO_EVENT_QUEUE* event_queue;
+class engine {
+public:
+	engine(std::string data_path);
+	~engine();
 
-    renderer_state* renderer;
+	bool run_frame();
+
+	renderer& get_renderer() const;
+	input& get_input() const;
+
+	ALLEGRO_EVENT_QUEUE* get_event_queue();
+
+private:
+	ALLEGRO_EVENT_QUEUE* _event_queue = nullptr;
+
+	std::unique_ptr<renderer> _renderer;
+	std::unique_ptr<input> _input;
 };
-
-engine_state* create_engine();
-void destroy_engine(engine_state * state);

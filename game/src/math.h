@@ -1,28 +1,45 @@
+
 #pragma once
 
-namespace math
-{
+namespace math {
+	constexpr float degrees_to_rad = ALLEGRO_PI / 180.0;
 
-template<typename T>
-constexpr T lerp(T a, T b, float t)
-{
-    return a + t * (b - a);
-}
+	template<typename T>
+	constexpr T clamp(T val, T min, T max) {
+		if (val < min)
+			return min;
 
-struct vector2 {
-    float x;
-    float y;
+		if (val > max)
+			return max;
 
-    float magnitude() const {
-        return sqrt(x * x + y * y);
-    }
-};
+		return val;
+	}
 
-vector2 operator+(vector2 lhs, vector2 rhs);
-vector2 operator-(vector2 lhs, vector2 rhs);
-vector2 operator*(vector2 lhs, float rhs);
-vector2 operator*(float lhs, vector2 rhs);
-vector2 operator/(vector2 lhs, float rhs);
-vector2& operator+=(vector2& lhs, vector2 rhs);
+	template<typename T>
+	constexpr T lerp(T a, T b, float t) {
+		return a + t * (b - a);
+	}
 
+
+	struct vector2 {
+		float x, y;
+
+		float magnitude() const {
+			return sqrt(x * x + y * y);
+		}
+	};
+
+	vector2 operator+(vector2 lhs, vector2 rhs);
+	vector2 operator-(vector2 lhs, vector2 rhs);
+	vector2 operator*(vector2 lhs, float rhs);
+	vector2 operator*(float lhs, vector2 rhs);
+	vector2 operator/(vector2 lhs, float rhs);
+	vector2& operator+=(vector2& lhs, vector2 rhs);
+
+
+	struct color {
+		uint8_t r, g, b, a;
+
+		static color red, white, green;
+	};
 }

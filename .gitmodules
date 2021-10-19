@@ -1,0 +1,19 @@
+[submodule "deps/entt"]
+	path = deps/entt
+	url = https://github.com/skypjack/entt
+[submodule "deps/imgui"]
+	path = deps/imgui
+	url = https://github.com/ocornut/imgui
+	branch = docking
+[submodule "deps/psd_sdk"]
+	path = deps/psd_sdk
+	url = https://github.com/MolecularMatters/psd_sdk
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = https://github.com/glfw/glfw
+[submodule "deps/tracy"]
+	path = deps/tracy
+	url = https://github.com/wolfpld/tracy
+[submodule "deps/concurrentqueue"]
+	path = deps/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue/

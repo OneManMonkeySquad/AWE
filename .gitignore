@@ -2,8 +2,11 @@
 bin/
 !bin/data
 obj/
+lib/
 
 packages
 
+*.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.sln

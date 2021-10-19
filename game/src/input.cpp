@@ -1,56 +1,55 @@
-
 #include "pch.h"
+#include "imgui\backends\imgui_impl_allegro5.h"
 #include "input.h"
 #include "engine.h"
-#include "imgui-1.74\imgui.h"
-#include "imgui-1.74\examples\imgui_impl_allegro5.h"
+#include "utils.h"
 
-static bool key_down[ALLEGRO_KEY_MAX] = {};
+bool input::is_key_down(int key) {
+	return key_down[key];
+}
 
-bool handle_input(engine_state& engine, entt::registry& state) {
-    input new_input;
-    new_input.wheel = 0;
+int input::get_mouse_wheel() {
+	return mouseWheel;
+}
 
-    ImGuiIO& io = ImGui::GetIO();
+void input::begin_frame() {
+	mouseWheel = 0;
+	events.clear();
+}
 
-    ALLEGRO_EVENT ev;
-    while (al_get_next_event(engine.event_queue, &ev)) {
-        ImGui_ImplAllegro5_ProcessEvent(&ev);
+void input::on_event(ALLEGRO_EVENT ev) {
+	ImGui_ImplAllegro5_ProcessEvent(&ev);
 
-        
+	ImGuiIO& io = ImGui::GetIO();
 
-        switch (ev.type) {
-        case ALLEGRO_EVENT_DISPLAY_CLOSE:
-            return true; // quit game
+	switch (ev.type) {
+	case ALLEGRO_EVENT_DISPLAY_RESIZE:
+		panic("Resize Not Implemented");
+		break;
 
-        case ALLEGRO_EVENT_KEY_DOWN:
-            if (!io.WantCaptureKeyboard) {
-                key_down[ev.keyboard.keycode] = true;
-            }
-            break;
+	case ALLEGRO_EVENT_KEY_DOWN:
+		if (!io.WantCaptureKeyboard) {
+			key_down[ev.keyboard.keycode] = true;
+			events.emplace_back(input_event_type::key_down, ev.keyboard.keycode);
+		}
+		break;
 
-        case ALLEGRO_EVENT_KEY_UP:
-            // io.WantCaptureKeyboard absichtlich ignorieren
-            key_down[ev.keyboard.keycode] = false;
-            break;
+	case ALLEGRO_EVENT_KEY_UP:
+		// io.WantCaptureKeyboard absichtlich ignorieren
+		key_down[ev.keyboard.keycode] = false;
+		events.emplace_back(input_event_type::key_up, ev.keyboard.keycode);
+		break;
 
-        case ALLEGRO_EVENT_MOUSE_AXES:
-            if (!io.WantCaptureMouse) {
-                new_input.wheel = ev.mouse.dz;
-            }
-            break;
-        }
-    }
+	case ALLEGRO_EVENT_MOUSE_AXES:
+		if (!io.WantCaptureMouse) {
+			mouseWheel = ev.mouse.dz;
+		}
+		break;
 
-    if (key_down[ALLEGRO_KEY_ESCAPE])
-        return true; // Spiel beenden
-
-    new_input.w = key_down[ALLEGRO_KEY_W];
-    new_input.s = key_down[ALLEGRO_KEY_S];
-    new_input.a = key_down[ALLEGRO_KEY_A];
-    new_input.d = key_down[ALLEGRO_KEY_D];
-
-    state.set<input>() = new_input;
-
-    return false; // true if the user wants to quit the game
+	case ALLEGRO_EVENT_DISPLAY_SWITCH_OUT:
+		for (int i = 0; i < ALLEGRO_KEY_MAX; ++i) {
+			key_down[i] = false;
+		}
+		break;
+	}
 }
