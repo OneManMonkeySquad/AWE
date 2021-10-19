@@ -1,10 +1,8 @@
 .vs/
 bin/
-!bin/data
+!bin/data/*.*
 obj/
 lib/
-
-packages
 
 *.vcxproj
 *.vcxproj.filters

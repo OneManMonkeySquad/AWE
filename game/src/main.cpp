@@ -48,6 +48,7 @@ void DoFrames(void*) {
 }
 
 int main(int argc, char** argv) {
+#if 0
 	jobs::context ctx;
 
 	jobs::counter cnt;
@@ -57,6 +58,7 @@ int main(int argc, char** argv) {
 
 	print("TEST DONE");
 	return 0;
+#endif
 
 	using namespace std::chrono;
 
@@ -121,7 +123,7 @@ int main(int argc, char** argv) {
 			update_camera(game_state, input, delta_time_ms);
 		}
 		if (draw_debugger) {
-			draw_debugger(game_state);
+			::draw_debugger(game_state);
 		}
 		{
 			auto a = static_cast<float>(game_lag.count() / game_timestep.count());
