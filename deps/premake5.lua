@@ -1,6 +1,8 @@
 project "ImGui"
 	kind "StaticLib"
 	language "C++"
+	systemversion "latest"
+	cppdialect "C++17"
 
 	targetdir "%{wks.location}/lib"
     objdir "%{wks.location}/obj"
@@ -19,9 +21,7 @@ project "ImGui"
 		"imgui/imgui_demo.cpp"
 	}
 
-	systemversion "latest"
-	cppdialect "C++17"
-	staticruntime "On"
+	defines "ALLEGRO_STATICLINK"
 
 	filter "system:linux"
 		pic "On"
@@ -53,12 +53,12 @@ project "ImGuiAllegro5Backend"
 			"%{wks.location}/deps/allegro5/AllegroDeps.1.10.0.0/build/native/include",
 			"%{wks.location}/deps/allegro5/Allegro.5.2.5.2/build/native/include"
 		}
-	
+		
+		defines "ALLEGRO_STATICLINK"
+
 		systemversion "latest"
 		cppdialect "C++17"
-		staticruntime "On"
 
-		defines "ALLEGRO_STATICLINK"
 
 		filter "system:linux"
 			pic "On"
@@ -89,7 +89,7 @@ project "psd_sdk"
 	--pchsource "psd_sdk/src/Psd/PsdPch.cpp"
 
 	defines { "WIN32","_LIB" }
-	staticruntime "On"
+	cppdialect "C++17"
 	
 	filter "configurations:Debug"
 		runtime "Debug"
@@ -113,8 +113,6 @@ project "tracy_client"
 	}
 
 	defines "TRACY_ENABLE"
-
-	staticruntime "On"
 
 	filter "configurations:Debug"
 		runtime "Debug"
@@ -145,8 +143,6 @@ project "glfw"
 		"glfw/src/window.c"
 	}
 
-	staticruntime "On"
-
 	filter "system:windows"
 		files {
 			"glfw/src/win32_init.c",
@@ -172,3 +168,34 @@ project "glfw"
    	filter "configurations:Release"
     	defines { "NDEBUG" }
     	optimize "On"
+
+
+project "yojimbo"
+	kind "StaticLib"
+	files { 
+		"yojimbo/yojimbo.h", 
+		"yojimbo/yojimbo.cpp", 
+		"yojimbo/certs.h", 
+		"yojimbo/certs.c", 
+		"yojimbo/tlsf/tlsf.h", 
+		"yojimbo/tlsf/tlsf.c", 
+		"yojimbo/netcode.io/netcode.c", 
+		"yojimbo/netcode.io/netcode.h", 
+		"yojimbo/reliable.io/reliable.c", 
+		"yojimbo/reliable.io/reliable.h"
+	}
+	includedirs {
+		"yojimbo",
+		"yojimbo/windows",
+		"yojimbo/netcode.io",
+		"yojimbo/reliable.io"
+	}
+	libdirs { "yojimbo/windows" }
+
+	filter "configurations:Debug"
+		defines { "YOJIMBO_DEBUG", "NETCODE_DEBUG", "RELIABLE_DEBUG" }
+		symbols "On"
+
+	filter "configurations:Release"
+		defines { "YOJIMBO_RELEASE", "NETCODE_RELEASE", "RELIABLE_RELEASE" }
+		optimize "On"

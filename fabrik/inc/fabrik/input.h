@@ -1,3 +1,4 @@
+
 #pragma once
 
 enum class input_event_type {
@@ -14,14 +15,12 @@ class input {
 public:
 	std::vector<input_event> events;
 
-	bool is_key_down(int key);
+	virtual ~input() = default;
 
-	int get_mouse_wheel();
+	virtual void initialize() = 0;
 
-	void begin_frame();
-	void on_event(ALLEGRO_EVENT ev);
+	virtual void begin_frame() = 0;
 
-private:
-	bool key_down[ALLEGRO_KEY_MAX] = {};
-	int mouseWheel = 0;
+	virtual bool is_key_down(int key) = 0;
+	virtual int get_mouse_wheel() = 0;
 };

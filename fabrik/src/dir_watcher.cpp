@@ -17,9 +17,9 @@ struct background_watcher_data {
 
 namespace {
 	void background_thread(background_watcher_data& data) {
-		SetThreadDescription(GetCurrentThread(), L"dir_watcher");
+		debug::set_current_thread_name("dir_watcher");
 
-		print("Watching '{}'", data.directory);
+		print("Watching for changes in {}", data.directory);
 		auto hDir = FindFirstChangeNotificationA(data.directory.c_str(),
 			TRUE,
 			FILE_NOTIFY_CHANGE_FILE_NAME |

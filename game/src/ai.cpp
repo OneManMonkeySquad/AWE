@@ -2,7 +2,6 @@
 #include "pch.h"
 #include "ai.h"
 #include "game.h"
-#include "utils.h"
 #include "ai_actions.h"
 
 
@@ -25,8 +24,8 @@ using ai_world_state = std::vector<ai_world_property>;
 
 struct ai_global_actions {
 	std::vector< const char* > action_names;
-	std::vector< entt::delegate< action_result(entt::registry&, action_context&) > > impl_start;
-	std::vector< entt::delegate< action_result(entt::registry&, action_context&) > > impl_update;
+	std::vector< entt::delegate< action_result(scene&, action_context&) > > impl_start;
+	std::vector< entt::delegate< action_result(scene&, action_context&) > > impl_update;
 	std::vector< ai_world_state > preconditions;
 	std::vector< ai_world_state > effects;
 };
@@ -90,27 +89,27 @@ void add_action(ai_global_actions& actions, const char* name, ai_world_state pre
 }
 
 
-void init_ai(entt::registry& state) {
-	auto& global_data = state.ctx_or_set<ai_global_data>();
-	global_data.ai_agent_created.connect(state, entt::collector.group<ai_agent>());
+void init_ai(scene& scene) {
+	auto& global_data = scene.registry.ctx_or_set<ai_global_data>();
+	global_data.ai_agent_created.connect(scene.registry, entt::collector.group<ai_agent>());
 
 
 	//////////////////////////////////// Low Level ////////////////////////////////////
 
 
 	add_action<&hunt_deer>(global_data.actions[AI_LOW_LEVEL], "Hunt Deer",
-		{},
-		{ make_world_property(ai_property::can_see_meat, true) }
+						   {},
+						   { make_world_property(ai_property::can_see_meat, true) }
 	);
 
 	add_action<&pickup_meat>(global_data.actions[AI_LOW_LEVEL], "Pickup Meat",
-		{ make_world_property(ai_property::can_see_meat, true) },
-		{ make_world_property(ai_property::has_meat, true) }
+							 { make_world_property(ai_property::can_see_meat, true) },
+							 { make_world_property(ai_property::has_meat, true) }
 	);
 
 	add_action<&eat_meat>(global_data.actions[AI_LOW_LEVEL], "Eat Meat",
-		{ make_world_property(ai_property::has_meat, true) },
-		{ make_world_property(ai_property::has_meat, false), make_world_property(ai_property::is_hungry, false) }
+						  { make_world_property(ai_property::has_meat, true) },
+						  { make_world_property(ai_property::has_meat, false), make_world_property(ai_property::is_hungry, false) }
 	);
 
 
@@ -118,27 +117,29 @@ void init_ai(entt::registry& state) {
 
 	// Fight hunger
 	add_goal(global_data.actions[AI_HIGH_LEVEL], "Hunger",
-		{ make_world_property(ai_property::is_hungry, true) },
-		{ make_world_property(ai_property::is_hungry, false) }
+			 { make_world_property(ai_property::is_hungry, true) },
+			 { make_world_property(ai_property::is_hungry, false) }
 	);
 }
 
 
-void update_ai(entt::registry& state) {
-	ai_global_data& global_data = state.ctx<ai_global_data>();
+
+
+void update_ai(scene& scene) {
+	ai_global_data& global_data = scene.registry.ctx<ai_global_data>();
 
 	global_data.ai_agent_created.each([&](entt::entity e) {
-		state.emplace<ai_agent_system_data>(e);
+		scene.registry.emplace<ai_agent_system_data>(e);
 	});
 
-	auto ai_agents = state.view<ai_agent, ai_agent_system_data, transform>();
+	auto ai_agents = scene.registry.view<ai_agent, ai_agent_system_data, transform>();
 	for (auto agent_entity : ai_agents) {
 		auto& agent = ai_agents.get<ai_agent>(agent_entity);
 		auto& agent_system_data = ai_agents.get<ai_agent_system_data>(agent_entity);
-		const auto& agent_transform = state.get<transform>(agent_entity);
+		const auto& agent_transform = scene.registry.get<transform>(agent_entity);
 
 		agent.hunger = std::min(agent.hunger + 0.005f, 1.f);
-		debug::draw_world_text(state, agent_transform.position + math::vector2{ 20, 20 }, std::format("hunger={:.2}", agent.hunger));
+		debug::draw_world_text(scene, agent_transform.position + math::vector2{ 20, 20 }, std::format("hunger={:.2}", agent.hunger));
 
 		{
 			std::string desc0;
@@ -149,7 +150,7 @@ void update_ai(entt::registry& state) {
 					desc0 += ",";
 				}
 			}
-			debug::draw_world_text(state, agent_transform.position + math::vector2{ 40, 40 }, desc0);
+			debug::draw_world_text(scene, agent_transform.position + math::vector2{ 40, 40 }, desc0);
 		}
 
 
@@ -162,7 +163,7 @@ void update_ai(entt::registry& state) {
 					desc1 += ",";
 				}
 			}
-			debug::draw_world_text(state, agent_transform.position + math::vector2{ 50, 50 }, desc1);
+			debug::draw_world_text(scene, agent_transform.position + math::vector2{ 50, 50 }, desc1);
 		}
 
 
@@ -174,7 +175,7 @@ void update_ai(entt::registry& state) {
 				agent,
 				agent_entity
 			};
-			const auto result = action(state, ctx);
+			const auto result = action(scene, ctx);
 			switch (result) {
 			case action_result::in_progress:
 				continue;
@@ -204,7 +205,7 @@ void update_ai(entt::registry& state) {
 				curr_state.push_back(make_world_property(ai_property::is_hungry, hungry));
 
 				bool can_see_meat = false;
-				state.view<item>().each([&](auto& item) {
+				scene.registry.view<item>().each([&](auto& item) {
 					if (item.type == item_type::meat) {
 						can_see_meat = true;
 					}
@@ -212,7 +213,7 @@ void update_ai(entt::registry& state) {
 
 				curr_state.push_back(make_world_property(ai_property::can_see_meat, can_see_meat));
 
-				auto has_meat = inventory_has_item_of_type(state, agent_entity, item_type::meat);
+				auto has_meat = inventory_has_item_of_type(scene, agent_entity, item_type::meat);
 				curr_state.push_back(make_world_property(ai_property::has_meat, has_meat));
 			}
 

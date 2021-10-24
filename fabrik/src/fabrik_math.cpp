@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "math.h"
+#include "fabrik_math.h"
 
 namespace math {
 	vector2 operator+(vector2 l, vector2 r) {

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "error.h"
+#include "utils.h"
 
 template<typename T>
 class expected {
@@ -29,7 +30,7 @@ public:
 	}
 
 	T operator*() {
-		assert(_ok);
+		fabrik_assert(_ok);
 		return _val;
 	}
 

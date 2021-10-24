@@ -29,6 +29,11 @@ namespace math {
 		}
 	};
 
+	template<typename Archive>
+	void serialize(Archive& archive, vector2& vec) {
+		archive(vec.x, vec.y);
+	}
+
 	vector2 operator+(vector2 lhs, vector2 rhs);
 	vector2 operator-(vector2 lhs, vector2 rhs);
 	vector2 operator*(vector2 lhs, float rhs);

@@ -1,6 +1,8 @@
-project "Game"
+project "game"
    kind "WindowedApp"
    language "C++"
+   systemversion "latest"
+   cppdialect "C++latest"
 
    targetname "game_%{cfg.buildcfg}"
 
@@ -18,15 +20,23 @@ project "Game"
       "shlwapi",
 
       "ImGui", "ImGuiAllegro5Backend",
+
       "psd_sdk",
+      
       "OpenGL32", "dumb", "FLAC", "freetype", "jpeg", "libpng16", "ogg", "opus", 
       "opusfile", "physfs", "theoradec", "vorbis", "vorbisfile", "webp",
       "webpdecoder", "webpdemux", "zlib", "allegro_monolith-static",
-      "tracy_client"
+
+      "tracy_client",
+
+      "sodium", "mbedtls", "mbedx509", "mbedcrypto", "yojimbo",
+
+      "fabrik"
    }
    libdirs {
       "%{wks.location}/deps/allegro5/AllegroDeps.1.10.0.0/build/native/v142/x64/deps/lib",
-      "%{wks.location}/deps/allegro5/Allegro.5.2.5.2/build/native/v142/x64/lib"
+      "%{wks.location}/deps/allegro5/Allegro.5.2.5.2/build/native/v142/x64/lib",
+      "%{wks.location}/deps/yojimbo/windows"
    }
 
    files {
@@ -41,7 +51,11 @@ project "Game"
       "%{wks.location}/deps/glfw/include",
       "%{wks.location}/deps/allegro5/AllegroDeps.1.10.0.0/build/native/include",
       "%{wks.location}/deps/allegro5/Allegro.5.2.5.2/build/native/include",
-      "%{wks.location}/deps/concurrentqueue"
+      "%{wks.location}/deps/concurrentqueue",
+      "%{wks.location}/deps/enet/include",
+      "%{wks.location}/deps/cxxopts/include",
+      "%{wks.location}/deps/cereal/include",
+      "%{wks.location}/fabrik/inc",
    }
    pchheader "pch.h"
    pchsource "src/pch.cpp"
@@ -51,9 +65,8 @@ project "Game"
    debugdir "%{wks.location}/bin"
 
    filter "system:windows"
-      systemversion "latest"
-      cppdialect "C++latest"
-      staticruntime "On"
+      editAndContinue "Off"
+      stringpooling "On"
 
    filter "configurations:Debug"
       runtime "Debug"

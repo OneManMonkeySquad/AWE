@@ -1,6 +1,4 @@
 .vs/
-bin/
-!bin/data/*.*
 obj/
 lib/
 
@@ -8,3 +6,10 @@ lib/
 *.vcxproj.filters
 *.vcxproj.user
 *.sln
+*.pdb
+*.exe
+*.dll
+*.so
+*.ini
+*.exp
+*.lib

@@ -17,3 +17,12 @@
 [submodule "deps/concurrentqueue"]
 	path = deps/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue/
+[submodule "deps/cxxopts"]
+	path = deps/cxxopts
+	url = https://github.com/jarro2783/cxxopts
+[submodule "deps/yojimbo"]
+	path = deps/yojimbo
+	url = https://github.com/networkprotocol/yojimbo
+[submodule "deps/cereal"]
+	path = deps/cereal
+	url = https://github.com/USCiLab/cereal

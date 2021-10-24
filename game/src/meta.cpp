@@ -3,7 +3,6 @@
 #include "meta.h"
 #include "math.h"
 #include "game.h"
-#include "renderer.h"
 #include "ai.h"
 
 using namespace entt::literals;
@@ -17,6 +16,7 @@ template<typename Type>
 Type& set(entt::registry& registry, entt::entity entity, const Type& instance) {
 	return registry.emplace_or_replace<Type>(entity, instance);
 }
+
 
 
 void init_meta() {
@@ -55,6 +55,13 @@ void init_meta() {
 		.ctor();
 
 
+	entt::meta<pawn>()
+		.type("pawn"_hs)
+		.prop("hierarchy_tag"_hs, (const char*)"Pawn")
+
+		.ctor();
+
+
 	entt::meta<math::vector2>()
 		.func<&get<transform>, entt::as_ref_t>("get"_hs)
 		.func<&set<transform>>("set"_hs)
@@ -88,10 +95,18 @@ void init_meta() {
 		.data<&transform::angle>("angle"_hs).prop("name"_hs, (const char*)"angle");
 
 
+	entt::meta<bitmap_id>()
+		.func<&get<bitmap_id>, entt::as_ref_t>("get"_hs)
+		.func<&set<bitmap_id>>("set"_hs)
+
+		.type("bitmap_id"_hs)
+		.data<&bitmap_id::resource_hash>("resource_hash"_hs).prop("name"_hs, (const char*)"resource_hash");
+
+
 	entt::meta<sprite_instance>()
 		.func<&get<sprite_instance>, entt::as_ref_t>("get"_hs)
 		.func<&set<sprite_instance>>("set"_hs)
 
 		.type("sprite_instance"_hs)
-		.data<&sprite_instance::sprite>("sprite"_hs).prop("name"_hs, (const char*)"sprite");
+		.data<&sprite_instance::bitmap>("bitmap"_hs).prop("name"_hs, (const char*)"bitmap");
 }
