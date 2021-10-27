@@ -13,3 +13,4 @@ lib/
 *.ini
 *.exp
 *.lib
+*.idb

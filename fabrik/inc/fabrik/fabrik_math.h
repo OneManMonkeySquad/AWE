@@ -27,6 +27,9 @@ namespace math {
 		float magnitude() const {
 			return sqrt(x * x + y * y);
 		}
+		constexpr float dot(const vector2& other) const {
+			return x * other.x + y * other.y;
+		}
 	};
 
 	template<typename Archive>
@@ -45,6 +48,6 @@ namespace math {
 	struct color {
 		uint8_t r, g, b, a;
 
-		static color red, white, green;
+		static color red, white, green, blue;
 	};
 }

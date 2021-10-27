@@ -30,7 +30,7 @@ void allegro_renderer::initialize(engine* engine) {
 		panic("Allegro addon init failed");
 
 	al_set_new_display_flags(ALLEGRO_WINDOWED); // ALLEGRO_FRAMELESS
-	_display = al_create_display(1280, 768);
+	_display = al_create_display(800, 600);
 	al_set_window_title(_display, _window_title.c_str());
 
 
@@ -52,9 +52,9 @@ void allegro_renderer::initialize(engine* engine) {
 	{
 		_tile_sprite = _engine->get_resource_manager().load_bitmap_resource("tile.psd");
 
-		for (int y = 0; y < 100; y++) {
-			for (int x = 0; x < 100; x++) {
-				_tile_map[x + y * 100] = rand() % 4;
+		for (int y = 0; y < 24; y++) {
+			for (int x = 0; x < 24; x++) {
+				_tile_map[x + y * 24] = rand() % 4;
 			}
 		}
 	}
@@ -93,14 +93,14 @@ void allegro_renderer::render(const camera cam, const entt::registry& registry) 
 		defer{ al_hold_bitmap_drawing(0); };
 
 		int x, y;
-		for (y = 0; y < 100; y++) {
-			for (x = 0; x < 100; x++) {
-				int i = _tile_map[x + y * 100];
+		for (y = 0; y < 24; y++) {
+			for (x = 0; x < 24; x++) {
+				int i = _tile_map[x + y * 24];
 				float u = 1;
 				float v = 1;
 
 				auto bitmap = _engine->get_resource_manager().get_bitmap_by_id(_tile_sprite);
-				al_draw_bitmap(bitmap, x * 15.f, y * 15.f, 0);
+				al_draw_bitmap(bitmap, x * 64, y * 64, 0);
 			}
 		}
 	}

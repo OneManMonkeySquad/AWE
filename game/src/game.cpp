@@ -3,62 +3,13 @@
 #include "ai.h"
 #include "network_messages.h"
 #include "game_network_adapter.h"
-
-class command {
-public:
-	virtual ~command() = default;
-
-	virtual void exec(scene& scene) = 0;
-};
-
-class pause_command : public command {
-public:
-	void exec(scene& scene) {
-		auto& ps = scene.registry.ctx<global_state>();
-		ps.paused = !ps.paused;
-	}
-};
-
-class pawn_input_command : public command {
-public:
-	math::vector2 _dir;
-
-	pawn_input_command(math::vector2 dir) : _dir(dir) {}
-
-	void exec(scene& scene) {
-		for (auto [e, velo] : scene.registry.view<pawn, velocity>().each()) {
-			velo.dx = _dir.x * 8;
-			velo.dy = _dir.y * 8;
-		}
-	}
-};
+#include "app_states.h"
 
 
-struct command_queue {
-	std::vector<std::shared_ptr<command>> commands;
-};
 
 
-void game_create_commands_from_input(scene& scene, input& input) {
-	auto& queue = scene.registry.ctx_or_set<command_queue>();
 
-	for (auto& evt : input.events) {
-		if (evt.type == input_event_type::key_down && evt.key == ALLEGRO_KEY_SPACE) {
-			queue.commands.push_back(std::make_shared<pause_command>());
-		}
-	}
 
-	const auto w = input.is_key_down(ALLEGRO_KEY_W);
-	const auto s = input.is_key_down(ALLEGRO_KEY_S);
-	const auto a = input.is_key_down(ALLEGRO_KEY_A);
-	const auto d = input.is_key_down(ALLEGRO_KEY_D);
-
-	math::vector2 offset;
-	offset.x = (d - a);
-	offset.y = (s - w);
-
-	queue.commands.push_back(std::make_shared<pawn_input_command>(offset));
-}
 
 
 void game_add_server_stuff(scene& scene, engine& engine) {
@@ -159,32 +110,26 @@ void update_kill(scene& scene, engine& engine) {
 	}
 }
 
-void update_commands(scene& scene) {
-	auto& queue = scene.registry.ctx_or_set<command_queue>();
-
-	while (!queue.commands.empty()) {
-		auto command = queue.commands[queue.commands.size() - 1];
-		queue.commands.pop_back();
-		command->exec(scene);
+void update_pawn_inputs(scene& scene) {
+	for (auto [e, velo, inp] : scene.registry.view<velocity, pawn_tick_input>().each()) {
+		velo.dx = (inp.tick_input.right - inp.tick_input.left) * 4;
+		velo.dy = (inp.tick_input.down - inp.tick_input.up) * 4;
 	}
+}
+
+size_t game_get_tick(scene& scene) {
+	auto& ps = scene.registry.ctx<global_state>();
+	return ps.tick;
 }
 
 void game_run_tick(scene& scene, engine& engine) {
 	ZoneScoped;
 
-	update_commands(scene);
-
 	auto& ps = scene.registry.ctx<global_state>();
-
-	debug::draw_screen_text_at(scene, { 300, 16 }, std::format("tick={}", ps.tick));
-
-	if (ps.paused) {
-		debug::draw_screen_text_at(scene, { 400, 16 }, "(paused)");
-		return;
-	}
-
+	debug::draw_screen_text_at(scene, { 300, 16 }, std::format("tick={} local_client_idx={}", ps.tick, ps.local_client_idx));
 	++ps.tick;
 
+	update_pawn_inputs(scene);
 	update_physics(scene);
 	update_ai(scene);
 	update_kill(scene, engine);
@@ -250,13 +195,14 @@ entt::entity inventory_remove_item_of_type(scene& scene, entt::entity inventory_
 
 
 
-void add_player(engine& engine, scene& scene) {
+void create_player(engine& engine, scene& scene, int client_idx) {
 	auto enemyBmp = engine.get_resource_manager().load_bitmap_resource("player.psd");
+
 	auto entity = scene.create_entity();
-	entity.emplace<transform>(math::vector2{ float(rand() % 1500), float(rand() % 1500) });
+	entity.emplace<transform>(math::vector2{ 800, 800 });
 	entity.emplace<sprite_instance>(enemyBmp);
 	entity.emplace<velocity>();
-	entity.emplace<pawn>();
+	entity.emplace<pawn>(client_idx);
 }
 
 void send_initial_game_state(engine& engine, scene& scene, int client_idx) {
@@ -279,18 +225,26 @@ void send_initial_game_state(engine& engine, scene& scene, int client_idx) {
 		msg->data = str.substr(i * packet_size, packet_size);
 
 		engine.get_network().get_server().SendMessage(client_idx, 0, msg);
-		print("SERVER SEND MESSAGE TO CLIENT {}", i);
 	}
 
 	{
+		auto& ps = scene.registry.ctx<global_state>();
+
 		auto msg = (network_messages::initial_game_state_end*)engine.get_network().get_server().CreateMessage(client_idx, INITIAL_GAME_STATE_END_MESSAGE);
 		msg->data_hash = std::hash<std::string>()(str);
+		msg->tick = ps.tick;
+		msg->local_client_idx = client_idx;
 		engine.get_network().get_server().SendMessage(client_idx, 0, msg);
-		print("SERVER SEND MESSAGE TO CLIENT END");
 	}
 }
 
-void on_initial_game_state(engine& engine, scene& scene, const std::string& data) {
+void on_initial_game_state(engine& engine, scene& scene, const std::string& data, network_messages::initial_game_state_end* message) {
+	const auto hash = std::hash<std::string>()(data);
+	if (hash != ((network_messages::initial_game_state_end*)message)->data_hash) {
+		engine.get_app_state_manager().switch_to<app_states::client_disconnected>("Initial Game State Corrupt");
+		return;
+	}
+
 	scene.clear();
 
 	print("HANDLING INITIAL STATE");
@@ -309,4 +263,11 @@ void on_initial_game_state(engine& engine, scene& scene, const std::string& data
 
 		sprite.bitmap.runtime_idx = engine.get_resource_manager().load_bitmap_resource(entt::hashed_string{ path->c_str() }).runtime_idx;
 	}
+
+	// Patch global state
+	auto& ps = scene.registry.ctx<global_state>();
+	ps.tick = message->tick;
+	ps.local_client_idx = message->local_client_idx;
+
+	engine.get_app_state_manager().switch_to<app_states::client_ingame>();
 }

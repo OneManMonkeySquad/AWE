@@ -31,4 +31,5 @@ namespace math {
 	color color::red{ 255, 0, 0, 255 };
 	color color::white{ 255, 255, 255, 255 };
 	color color::green{ 0, 255, 0, 255 };
+	color color::blue{ 0, 0, 255, 255 };
 }

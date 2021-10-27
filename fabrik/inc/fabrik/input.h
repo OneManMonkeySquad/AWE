@@ -11,6 +11,14 @@ struct input_event {
 	int key;
 };
 
+enum input_method {
+	keyboard_mouse,
+	joystick
+};
+
+const int input_xbox_left_stick = 0;
+const int input_xbox_right_stick = 1;
+
 class input {
 public:
 	std::vector<input_event> events;
@@ -21,6 +29,8 @@ public:
 
 	virtual void begin_frame() = 0;
 
-	virtual bool is_key_down(int key) = 0;
-	virtual int get_mouse_wheel() = 0;
+	virtual input_method get_current_input_method() const = 0;
+	virtual bool is_key_down(int key) const = 0;
+	virtual int get_mouse_wheel() const = 0;
+	virtual float get_joystick_axis(int stick, int axis) const = 0;
 };

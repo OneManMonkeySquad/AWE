@@ -172,6 +172,10 @@ project "glfw"
 
 project "yojimbo"
 	kind "StaticLib"
+
+	targetdir "%{wks.location}/lib"
+	objdir "%{wks.location}/obj"
+
 	files { 
 		"yojimbo/yojimbo.h", 
 		"yojimbo/yojimbo.cpp", 

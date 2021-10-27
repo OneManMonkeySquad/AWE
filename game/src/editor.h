@@ -1,4 +1,4 @@
 
 #pragma once
 
-void draw_debugger(scene& scene);
+void debugger_draw(scene& scene);

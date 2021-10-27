@@ -1,0 +1,1 @@
+start game_Debug.exe -c

@@ -59,7 +59,9 @@ void init_meta() {
 		.type("pawn"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Pawn")
 
-		.ctor();
+		.ctor()
+
+		.data<&pawn::client_idx>("client_idx"_hs).prop("name"_hs, (const char*)"client_idx");
 
 
 	entt::meta<math::vector2>()

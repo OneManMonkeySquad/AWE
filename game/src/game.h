@@ -2,10 +2,26 @@
 
 class engine;
 class input;
+namespace network_messages {
+	struct initial_game_state_end;
+}
+
+struct game_input {
+	bool left;
+	bool right;
+	bool up;
+	bool down;
+};
+
+struct command_queue {
+	std::vector<game_input> commands;
+};
+
+
 
 struct global_state {
-	int tick = 0;
-	bool paused = false;
+	size_t tick = 0;
+	int local_client_idx = -1;
 };
 
 struct velocity {
@@ -45,12 +61,24 @@ struct tree {};
 struct deer {};
 struct kill {};
 struct dead_deer {};
-struct pawn {};
+
+struct pawn {
+	int client_idx;
+
+	template<typename Archive>
+	void serialize(Archive& archive) {
+		archive(client_idx);
+	}
+};
+
+struct pawn_tick_input {
+	game_input tick_input;
+};
 
 scene& game_create(engine& engine);
 void game_add_server_stuff(scene& scene, engine& engine);
 
-void game_create_commands_from_input(scene& scene, input& input);
+size_t game_get_tick(scene& scene);
 void game_run_tick(scene& scene, engine& engine);
 
 void kill_deer(scene& scene, entt::entity target);
@@ -61,6 +89,7 @@ entt::entity inventory_remove_item_of_type(scene& scene, entt::entity inventory_
 
 
 
-void add_player(engine& engine, scene& scene);
+void create_player(engine& engine, scene& scene, int client_idx);
 void send_initial_game_state(engine& engine, scene& scene, int client_idx);
-void on_initial_game_state(engine& engine, scene& scene, const std::string& data);
+void on_initial_game_state(engine& engine, scene& scene, const std::string& data, network_messages::initial_game_state_end* message);
+

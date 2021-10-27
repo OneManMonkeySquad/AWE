@@ -93,12 +93,12 @@ namespace bitmap_reader {
 				defer{ al_unlock_bitmap(newBitmap); };
 
 				imageUtil::InterleaveRGB((const uint8_t*)imageData->images[0].data,
-					(const uint8_t*)imageData->images[1].data,
-					(const uint8_t*)imageData->images[2].data,
-					0,
-					(uint8_t*)locked->data,
-					document->width,
-					document->height);
+										 (const uint8_t*)imageData->images[1].data,
+										 (const uint8_t*)imageData->images[2].data,
+										 0,
+										 (uint8_t*)locked->data,
+										 document->width,
+										 document->height);
 			}
 			else if (document->bitsPerChannel == 16) {
 				//image16 = CreateInterleavedImage<uint16_t>(&allocator, imageData->images[0].data, imageData->images[1].data, imageData->images[2].data, document->width, document->height);
@@ -114,12 +114,12 @@ namespace bitmap_reader {
 				defer{ al_unlock_bitmap(newBitmap); };
 
 				imageUtil::InterleaveRGBA((const uint8_t*)imageData->images[0].data,
-					(const uint8_t*)imageData->images[1].data,
-					(const uint8_t*)imageData->images[2].data,
-					(const uint8_t*)imageData->images[3].data,
-					(uint8_t*)locked->data,
-					document->width,
-					document->height);
+										  (const uint8_t*)imageData->images[1].data,
+										  (const uint8_t*)imageData->images[2].data,
+										  (const uint8_t*)imageData->images[3].data,
+										  (uint8_t*)locked->data,
+										  document->width,
+										  document->height);
 
 				// By default, Allegro pre-multiplies the alpha channel of an image with the images color data when it loads it
 				auto  data = (uint8_t*)locked->data;
@@ -146,6 +146,9 @@ namespace bitmap_reader {
 	}
 
 	expected<ALLEGRO_BITMAP*> load_bitmap(std::string_view path) {
+		ZoneScoped;
+		ZoneText(path.data(), path.size());
+
 		if (path.ends_with(".png"))
 			return load_bitmap_png(path);
 		else if (path.ends_with(".psd"))

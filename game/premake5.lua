@@ -60,7 +60,7 @@ project "game"
    pchheader "pch.h"
    pchsource "src/pch.cpp"
 
-   defines "ALLEGRO_STATICLINK"
+   defines {"ALLEGRO_STATICLINK","CXXOPTS_NO_RTTI"}
 
    debugdir "%{wks.location}/bin"
 

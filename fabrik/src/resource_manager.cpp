@@ -23,8 +23,8 @@ void resource_manager::begin_frame() {
 }
 
 void resource_manager::reload_all_sprite_bitmaps() {
-	for (const auto entry : _bitmap_resource_hash_runtime_idx_map) {
-		const auto path = _bitmap_reverse_map[entry.first];
+	for (const auto& entry : _bitmap_resource_hash_runtime_idx_map) {
+		const auto& path = _bitmap_reverse_map[entry.first];
 		auto bitmap = bitmap_reader::load_bitmap(_data_path + path);
 		_bitmaps[entry.second] = *bitmap;
 	}

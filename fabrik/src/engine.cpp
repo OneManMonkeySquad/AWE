@@ -48,7 +48,7 @@ engine::engine(std::string data_path, std::unique_ptr<renderer> renderer, std::u
 
 engine::~engine() {}
 
-bool engine::begin_frame() {
+void engine::begin_frame() {
 	_input->begin_frame();
 
 	// Aus irgendeinem Grund muss ImGui::NewFrame NACH dem verarbeiten der Allegro Events aufgerufen werden,
@@ -60,8 +60,10 @@ bool engine::begin_frame() {
 	_app_state_manager->begin_frame();
 
 	_resource_manager->begin_frame();
+}
 
-	return false;
+void engine::tick() {
+	_app_state_manager->tick();
 }
 
 renderer& engine::get_renderer() const {
@@ -95,7 +97,8 @@ resource_manager& engine::get_resource_manager() const {
 bool awe_init() {
 	if (!al_install_system(ALLEGRO_VERSION_INT, nullptr) ||
 		!al_install_mouse() ||
-		!al_install_keyboard())
+		!al_install_keyboard() ||
+		!al_install_joystick())
 		return false;
 
 	if (!InitializeYojimbo())
@@ -112,6 +115,7 @@ bool awe_init() {
 void awe_shutdown() {
 	ShutdownYojimbo();
 
+	al_uninstall_joystick();
 	al_uninstall_keyboard();
 	al_uninstall_mouse();
 	al_shutdown_ttf_addon();

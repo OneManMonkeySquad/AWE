@@ -53,6 +53,9 @@ namespace {
 		if (auto val = value.try_cast<float>(); val) {
 			ImGui::DragFloat(name, val, 1, 0, 0, "%.2f");
 		}
+		else if (auto val = value.try_cast<int>(); val) {
+			ImGui::LabelText(name, "%d", val);
+		}
 		else if (auto val = value.try_cast<uint16_t>(); val) {
 			ImGui::LabelText(name, "%u", val);
 		}
@@ -110,7 +113,7 @@ namespace {
 	}
 }
 
-void draw_debugger(scene& scene) {
+void debugger_draw(scene& scene) {
 	if (ImGui::BeginMainMenuBar()) {
 		defer{ ImGui::EndMainMenuBar(); };
 

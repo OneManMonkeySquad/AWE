@@ -28,10 +28,12 @@ void print(std::string_view str) {
 		memcpy(buff, str.data(), str.size());
 		buff[str.size()] = '\n';
 		buff[str.size() + 1] = '\0';
+
 		OutputDebugStringA(buff);
 	}
 	else {
 		const auto buff = std::format("{}\n", str);
+
 		OutputDebugStringA(buff.c_str());
 	}
 }

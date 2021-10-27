@@ -17,7 +17,8 @@ public:
 		   std::unique_ptr<yojimbo_network> network);
 	~engine();
 
-	bool begin_frame();
+	void begin_frame();
+	void tick();
 
 	renderer& get_renderer() const;
 	input& get_input() const;
