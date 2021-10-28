@@ -11,7 +11,7 @@ class resource_manager;
 
 class engine {
 public:
-	engine(std::string data_path,
+	engine(std::unique_ptr<resource_manager> resource_manager,
 		   std::unique_ptr<renderer> renderer,
 		   std::unique_ptr<input> input,
 		   std::unique_ptr<yojimbo_network> network);

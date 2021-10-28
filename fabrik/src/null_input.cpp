@@ -15,7 +15,7 @@ int null_input::get_mouse_wheel() const {
 }
 
 input_method null_input::get_current_input_method() const {
-	return keyboard_mouse;
+	return input_method::keyboard_mouse;
 }
 
 float null_input::get_joystick_axis(int stick, int axis) const {

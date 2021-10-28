@@ -13,67 +13,66 @@ struct game_input {
 	bool down;
 };
 
-struct command_queue {
-	std::vector<game_input> commands;
-};
 
-
-
-struct global_state {
-	size_t tick = 0;
-	int local_client_idx = -1;
-};
-
-struct velocity {
-	float dx;
-	float dy;
-	float angular;
-
-	template<typename Archive>
-	void serialize(Archive& archive) {
-		archive(dx, dy, angular);
-	}
-};
 
 enum class item_type { axe, meat, wood };
 
-struct item {
-	item_type type;
+namespace component {
+	struct global_state {
+		size_t tick = 0;
+		int local_client_idx = -1;
+	};
 
-	template<typename Archive>
-	void serialize(Archive& archive) {
-		archive((int&)type);
-	}
-};
+	struct velocity {
+		float dx;
+		float dy;
+		float angular;
 
-struct inventory {
-	std::array<entt::entity, 3> items = { entt::null, entt::null, entt::null };
-
-	template<typename Archive>
-	void serialize(Archive& archive) {
-		for (int i = 0; i < items.size(); ++i) {
-			archive(items[i]);
+		template<typename Archive>
+		void serialize(Archive& archive) {
+			archive(dx, dy, angular);
 		}
-	}
-};
+	};
 
-struct tree {};
-struct deer {};
-struct kill {};
-struct dead_deer {};
+	struct item {
+		item_type type;
 
-struct pawn {
-	int client_idx;
+		template<typename Archive>
+		void serialize(Archive& archive) {
+			archive((int&)type);
+		}
+	};
 
-	template<typename Archive>
-	void serialize(Archive& archive) {
-		archive(client_idx);
-	}
-};
+	struct inventory {
+		std::array<entt::entity, 3> items = { entt::null, entt::null, entt::null };
 
-struct pawn_tick_input {
-	game_input tick_input;
-};
+		template<typename Archive>
+		void serialize(Archive& archive) {
+			for (int i = 0; i < items.size(); ++i) {
+				archive(items[i]);
+			}
+		}
+	};
+
+	struct tree {};
+	struct grass {};
+	struct deer {};
+	struct kill {};
+	struct dead_deer {};
+
+	struct pawn {
+		int client_idx;
+
+		template<typename Archive>
+		void serialize(Archive& archive) {
+			archive(client_idx);
+		}
+	};
+
+	struct pawn_tick_input {
+		game_input tick_input;
+	};
+}
 
 scene& game_create(engine& engine);
 void game_add_server_stuff(scene& scene, engine& engine);

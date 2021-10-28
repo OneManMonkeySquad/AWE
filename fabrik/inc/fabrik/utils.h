@@ -25,6 +25,8 @@ void print(std::string_view fmt, const Ts&... args) {
 	print(str.c_str());
 }
 
+void create_console_window();
+
 namespace debug {
 	namespace internal {
 		struct debug_line {

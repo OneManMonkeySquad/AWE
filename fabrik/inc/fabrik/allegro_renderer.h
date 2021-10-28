@@ -12,7 +12,7 @@ public:
 	void initialize(engine* engine);
 
 	void begin_frame();
-	void render(const camera cam, const entt::registry& registry);
+	void render(const component::camera cam, const entt::registry& registry);
 
 	entt::registry clone_for_rendering(const scene& scene);
 	entt::registry interpolate_for_rendering(const entt::registry& current_registry,

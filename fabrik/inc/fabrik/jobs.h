@@ -34,12 +34,7 @@ namespace jobs {
 
 
 
-
-	void run_all(const job_decl* decls, size_t num, counter* cnt);
-	template<size_t N>
-	void run_all(const std::array<job_decl, N>& decls, counter* cnt) {
-		run_all(decls.data(), decls.size(), cnt);
-	}
+	void run_all(const std::span<job_decl> decls, counter* cnt);
 
 	/// Used to synchronize jobs.
 	void wait_for_counter(counter* cnt);

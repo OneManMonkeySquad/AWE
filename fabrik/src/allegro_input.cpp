@@ -55,7 +55,7 @@ void allegro_input::on_event(ALLEGRO_EVENT ev) {
 		break;
 
 	case ALLEGRO_EVENT_KEY_DOWN:
-		_current_input_method = keyboard_mouse;
+		_current_input_method = input_method::keyboard_mouse;
 		if (!io.WantCaptureKeyboard) {
 			_key_down[ev.keyboard.keycode] = true;
 			events.emplace_back(input_event_type::key_down, ev.keyboard.keycode);
@@ -76,13 +76,13 @@ void allegro_input::on_event(ALLEGRO_EVENT ev) {
 
 	case ALLEGRO_EVENT_JOYSTICK_AXIS:
 		if (ev.joystick.pos > 0.25f) {
-			_current_input_method = joystick;
+			_current_input_method = input_method::joystick;
 		}
 		_joystick_axis[ev.joystick.stick][ev.joystick.axis] = ev.joystick.pos;
 		break;
 
 	case ALLEGRO_EVENT_JOYSTICK_BUTTON_DOWN:
-		_current_input_method = joystick;
+		_current_input_method = input_method::joystick;
 		_joystick_buttons[ev.joystick.button] = true;
 		break;
 

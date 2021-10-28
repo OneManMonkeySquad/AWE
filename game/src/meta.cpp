@@ -20,53 +20,53 @@ Type& set(entt::registry& registry, entt::entity entity, const Type& instance) {
 
 
 void init_meta() {
-	entt::meta<inventory>()
+	entt::meta<component::inventory>()
 		.type("inventory"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Inventory")
 
 		.ctor();
 
 
-	entt::meta<ai_agent>()
+	entt::meta<component::ai_agent>()
 		.type("ai_agent"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"AIAgent")
 
 		.ctor();
 
 
-	entt::meta<item>()
+	entt::meta<component::item>()
 		.type("item"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Item")
 
 		.ctor();
 
 
-	entt::meta<tree>()
+	entt::meta<component::tree>()
 		.type("tree"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Tree")
 
 		.ctor();
 
 
-	entt::meta<deer>()
+	entt::meta<component::deer>()
 		.type("deer"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Deer")
 
 		.ctor();
 
 
-	entt::meta<pawn>()
+	entt::meta<component::pawn>()
 		.type("pawn"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Pawn")
 
 		.ctor()
 
-		.data<&pawn::client_idx>("client_idx"_hs).prop("name"_hs, (const char*)"client_idx");
+		.data<&component::pawn::client_idx>("client_idx"_hs).prop("name"_hs, (const char*)"client_idx");
 
 
 	entt::meta<math::vector2>()
-		.func<&get<transform>, entt::as_ref_t>("get"_hs)
-		.func<&set<transform>>("set"_hs)
+		.func<&get<math::vector2>, entt::as_ref_t>("get"_hs)
+		.func<&set<math::vector2>>("set"_hs)
 
 		.type("vector2"_hs)
 
@@ -75,26 +75,26 @@ void init_meta() {
 		.data<&math::vector2::y>("y"_hs).prop("name"_hs, (const char*)"y");
 
 
-	entt::meta<velocity>()
-		.func<&get<velocity>, entt::as_ref_t>("get"_hs)
-		.func<&set<velocity>>("set"_hs)
+	entt::meta<component::velocity>()
+		.func<&get<component::velocity>, entt::as_ref_t>("get"_hs)
+		.func<&set<component::velocity>>("set"_hs)
 
 		.type("velocity"_hs)
 
 		.ctor()
-		.data<&velocity::dx>("dx"_hs).prop("name"_hs, (const char*)"dx")
-		.data<&velocity::dy>("dy"_hs).prop("name"_hs, (const char*)"dy");
+		.data<&component::velocity::dx>("dx"_hs).prop("name"_hs, (const char*)"dx")
+		.data<&component::velocity::dy>("dy"_hs).prop("name"_hs, (const char*)"dy");
 
 
-	entt::meta<transform>()
-		.func<&get<transform>, entt::as_ref_t>("get"_hs)
-		.func<&set<transform>>("set"_hs)
+	entt::meta<component::transform>()
+		.func<&get<component::transform>, entt::as_ref_t>("get"_hs)
+		.func<&set<component::transform>>("set"_hs)
 
 		.type("transform"_hs)
 		.ctor()
 
-		.data<&transform::position>("position"_hs).prop("name"_hs, (const char*)"position")
-		.data<&transform::angle>("angle"_hs).prop("name"_hs, (const char*)"angle");
+		.data<&component::transform::position>("position"_hs).prop("name"_hs, (const char*)"position")
+		.data<&component::transform::angle>("angle"_hs).prop("name"_hs, (const char*)"angle");
 
 
 	entt::meta<bitmap_id>()
@@ -105,10 +105,10 @@ void init_meta() {
 		.data<&bitmap_id::resource_hash>("resource_hash"_hs).prop("name"_hs, (const char*)"resource_hash");
 
 
-	entt::meta<sprite_instance>()
-		.func<&get<sprite_instance>, entt::as_ref_t>("get"_hs)
-		.func<&set<sprite_instance>>("set"_hs)
+	entt::meta<component::sprite_instance>()
+		.func<&get<component::sprite_instance>, entt::as_ref_t>("get"_hs)
+		.func<&set<component::sprite_instance>>("set"_hs)
 
 		.type("sprite_instance"_hs)
-		.data<&sprite_instance::bitmap>("bitmap"_hs).prop("name"_hs, (const char*)"bitmap");
+		.data<&component::sprite_instance::bitmap>("bitmap"_hs).prop("name"_hs, (const char*)"bitmap");
 }

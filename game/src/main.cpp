@@ -5,10 +5,12 @@
 #include "editor.h"
 #include "game_network_adapter.h"
 #include "app_states.h"
+#include "fabrik/allegro_resource_manager.h"
 #include "fabrik/allegro_renderer.h"
 #include "fabrik/allegro_input.h"
 #include "fabrik/null_renderer.h"
 #include "fabrik/null_input.h"
+#include "fabrik/null_resource_manager.h"
 
 using namespace entt::literals;
 using namespace std::literals::chrono_literals;
@@ -72,7 +74,7 @@ void run_game(engine& engine) {
 
 			const auto interpolated_rendable_registry = renderer.interpolate_for_rendering(main_scene.registry, previous_rendable_registry, a);
 
-			const auto& cam = main_scene.registry.ctx<camera>();
+			const auto& cam = main_scene.registry.ctx<component::camera>();
 			renderer.render(cam, interpolated_rendable_registry);
 		}
 
@@ -81,7 +83,8 @@ void run_game(engine& engine) {
 }
 
 void run_client(void*) {
-	engine engine{ "data/",
+	engine engine{
+		std::make_unique<allegro_resource_manager>("data/"),
 		std::make_unique<allegro_renderer>("AWE"),
 		std::make_unique<allegro_input>(),
 		std::make_unique<yojimbo_network>()
@@ -93,7 +96,8 @@ void run_client(void*) {
 }
 
 void run_server(void*) {
-	engine engine{ "data/",
+	engine engine{
+		std::make_unique<null_resource_manager>(),
 		std::make_unique<null_renderer>(),
 		std::make_unique<null_input>(),
 		std::make_unique<yojimbo_network>()
@@ -122,6 +126,7 @@ int main(int argc, char** argv) {
 
 	std::vector<jobs::job_decl> jobs;
 	if (result["server"].as<bool>()) {
+		create_console_window();
 		jobs.push_back(jobs::job_decl{ &run_server, nullptr, "run_server" });
 	}
 	else if (result["client"].as<bool>()) {
@@ -133,7 +138,7 @@ int main(int argc, char** argv) {
 	}
 
 	jobs::counter cnt;
-	jobs::run_all(jobs.data(), jobs.size(), &cnt);
+	jobs::run_all(jobs, &cnt);
 
 	ctx.run_blocking();
 

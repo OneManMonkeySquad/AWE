@@ -11,6 +11,7 @@
 #include <format>
 #include <thread>
 #include <type_traits>
+#include <span>
 
 #include "entt/entt.hpp"
 

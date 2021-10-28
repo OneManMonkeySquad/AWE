@@ -11,7 +11,7 @@ struct input_event {
 	int key;
 };
 
-enum input_method {
+enum class input_method {
 	keyboard_mouse,
 	joystick
 };

@@ -28,10 +28,13 @@ namespace {
 	}
 }
 
-engine::engine(std::string data_path, std::unique_ptr<renderer> renderer, std::unique_ptr<input> input, std::unique_ptr<yojimbo_network> network) {
+engine::engine(std::unique_ptr<resource_manager> resource_manager,
+			   std::unique_ptr<renderer> renderer,
+			   std::unique_ptr<input> input,
+			   std::unique_ptr<yojimbo_network> network) {
 	_event_hub = std::make_unique<event_hub>();
 
-	_resource_manager = std::make_unique<resource_manager>(data_path);
+	_resource_manager = std::move(resource_manager);
 
 	_renderer = std::move(renderer);
 	_renderer->initialize(this);

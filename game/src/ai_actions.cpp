@@ -7,11 +7,11 @@ bool goto_target(scene& scene, action_context& ctx) {
 	if (!scene.registry.valid(ctx.agent.target))
 		return false;
 
-	auto target_transform = scene.registry.try_get<transform>(ctx.agent.target);
+	auto target_transform = scene.registry.try_get<component::transform>(ctx.agent.target);
 	if (target_transform == nullptr)
 		return false;
 
-	auto& tr = scene.registry.get<transform>(ctx.agent_entity);
+	auto& tr = scene.registry.get<component::transform>(ctx.agent_entity);
 
 	const auto diff = (target_transform->position - tr.position);
 	const auto dist = diff.magnitude();
@@ -24,9 +24,9 @@ bool goto_target(scene& scene, action_context& ctx) {
 
 
 action_result hunt_deer(scene& scene, action_context& ctx) {
-	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<deer>(ctx.agent.target);
+	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<component::deer>(ctx.agent.target);
 	if (target_invalid) {
-		auto deers = scene.registry.view<deer>();
+		auto deers = scene.registry.view<component::deer>();
 		if (deers.empty())
 			return action_result::failed;
 
@@ -42,15 +42,15 @@ action_result hunt_deer(scene& scene, action_context& ctx) {
 
 
 action_result pickup_meat(scene& scene, action_context& ctx) {
-	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<item>(ctx.agent.target);
-	if (target_invalid || scene.registry.get<item>(ctx.agent.target).type != item_type::meat) {
-		auto items = scene.registry.view<item, transform>();
+	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<component::item>(ctx.agent.target);
+	if (target_invalid || scene.registry.get<component::item>(ctx.agent.target).type != item_type::meat) {
+		auto items = scene.registry.view<component::item, component::transform>();
 		if (!items)
 			return action_result::failed;
 
 		std::vector<entt::entity> meats;
 		for (auto item_entity : items) {
-			auto it = items.get<item>(item_entity);
+			auto it = items.get<component::item>(item_entity);
 			if (it.type == item_type::meat) {
 				meats.push_back(item_entity);
 			}
@@ -70,7 +70,7 @@ action_result pickup_meat(scene& scene, action_context& ctx) {
 
 
 action_result eat_meat(scene& scene, action_context& ctx) {
-	auto& inv = scene.registry.get<inventory>(ctx.agent_entity);
+	auto& inv = scene.registry.get<component::inventory>(ctx.agent_entity);
 
 	if (!inventory_has_item_of_type(scene, ctx.agent_entity, item_type::meat))
 		return action_result::failed;

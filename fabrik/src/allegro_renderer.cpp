@@ -65,7 +65,7 @@ void allegro_renderer::begin_frame() {
 	ImGui::NewFrame();
 }
 
-void allegro_renderer::render(const camera cam, const entt::registry& registry) {
+void allegro_renderer::render(const component::camera cam, const entt::registry& registry) {
 	ZoneScoped;
 
 	al_set_target_backbuffer(_display);
@@ -108,14 +108,11 @@ void allegro_renderer::render(const camera cam, const entt::registry& registry) 
 	{
 		ZoneScopedN("Sprites");
 
-		auto rendables = registry.view<const transform, const sprite_instance>();
+		auto rendables = registry.view<const component::transform, const component::sprite_instance>();
 
 		auto depth_rendable_pairs = std::vector<std::pair<float, entt::entity>>{ rendables.size_hint() };
 
-		for (auto e : rendables) {
-			auto& tr = rendables.get<const transform>(e);
-			auto& sp = rendables.get<const sprite_instance>(e);
-
+		for (auto [e, tr, sp] : rendables.each()) {
 			depth_rendable_pairs.emplace_back(tr.position.y, e);
 		}
 
@@ -128,8 +125,8 @@ void allegro_renderer::render(const camera cam, const entt::registry& registry) 
 			defer{ al_hold_bitmap_drawing(false); };
 
 			for (auto p : depth_rendable_pairs) {
-				const auto& tr = rendables.get<const transform>(p.second);
-				const auto sprite_inst = rendables.get<const sprite_instance>(p.second);
+				const auto& tr = rendables.get<const component::transform>(p.second);
+				const auto sprite_inst = rendables.get<const component::sprite_instance>(p.second);
 				const auto bitmap = _engine->get_resource_manager().get_bitmap_by_id(sprite_inst.bitmap);
 
 				const auto w = al_get_bitmap_width(bitmap);
@@ -213,11 +210,11 @@ entt::registry allegro_renderer::clone_for_rendering(const scene& scene) {
 	cloned_registry.assign(scene.registry.data(), scene.registry.data() + scene.registry.size(), scene.registry.released());
 
 	{
-		auto view = scene.registry.view<const transform>();
+		auto view = scene.registry.view<const component::transform>();
 		cloned_registry.insert(view.data(), view.data() + view.size(), view.raw());
 	}
 	{
-		auto view = scene.registry.view<const sprite_instance>();
+		auto view = scene.registry.view<const component::sprite_instance>();
 		cloned_registry.insert(view.data(), view.data() + view.size(), view.raw());
 	}
 	return cloned_registry;
@@ -229,11 +226,11 @@ entt::registry allegro_renderer::interpolate_for_rendering(const entt::registry&
 
 	interpolated_registry.set<debug::internal::util_global_data>() = current_registry.ctx<const debug::internal::util_global_data>();
 
-	for (auto [e, current_transform, sp] : current_registry.view<const transform, const sprite_instance>().each()) {
+	for (auto [e, current_transform, sp] : current_registry.view<const component::transform, const component::sprite_instance>().each()) {
 		math::vector2 old_pos = current_transform.position;
 		float old_angle = current_transform.angle;
-		if (previous_registry.valid(e) && previous_registry.all_of<transform>(e)) { // Entity könnte erst diesen Frame existieren
-			const auto& old_transform = previous_registry.get<const transform>(e);
+		if (previous_registry.valid(e) && previous_registry.all_of<component::transform>(e)) { // Entity könnte erst diesen Frame existieren
+			const auto& old_transform = previous_registry.get<const component::transform>(e);
 			old_pos = old_transform.position;
 			old_angle = old_transform.angle;
 		}
@@ -242,8 +239,8 @@ entt::registry allegro_renderer::interpolate_for_rendering(const entt::registry&
 		auto interp_angle = math::lerp(old_angle, current_transform.angle, a);
 
 		auto interp_e = interpolated_registry.create();
-		interpolated_registry.emplace<transform>(interp_e, interp_pos, interp_angle);
-		interpolated_registry.emplace<sprite_instance>(interp_e, sp);
+		interpolated_registry.emplace<component::transform>(interp_e, interp_pos, interp_angle);
+		interpolated_registry.emplace<component::sprite_instance>(interp_e, sp);
 	}
 
 	return interpolated_registry;

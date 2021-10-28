@@ -127,16 +127,16 @@ namespace jobs {
 		}
 	}
 
-	void run_all(const job_decl* decls, size_t num, counter* cnt) {
-		*cnt += (int)num;
+	void run_all(const std::span<job_decl> decls, counter* cnt) {
+		*cnt += (int)decls.size();
 
 		std::vector<queued_job> qjs;
-		qjs.reserve(num);
+		qjs.reserve(decls.size());
 
-		for (int i = 0; i < num; ++i) {
+		for (int i = 0; i < decls.size(); ++i) {
 			qjs.emplace_back(decls[i], cnt);
 		}
-		job_queue.enqueue_bulk(qjs.data(), num);
+		job_queue.enqueue_bulk(qjs.data(), decls.size());
 	}
 
 	void wait_for_counter(counter* cnt) {

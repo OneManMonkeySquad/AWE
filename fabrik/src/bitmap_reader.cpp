@@ -127,9 +127,9 @@ namespace bitmap_reader {
 				for (size_t y = 0; y < document->height; y++) {
 					for (size_t x = 0; x < document->width; x++) {
 						const auto a = (*srcAlpha++) / 255.f;
-						data[x * 4 + 0] = (uint8_t)math::clamp(data[x * 4 + 0] * a, 0.f, 255.f); // R
-						data[x * 4 + 1] = (uint8_t)math::clamp(data[x * 4 + 1] * a, 0.f, 255.f); // G
-						data[x * 4 + 2] = (uint8_t)math::clamp(data[x * 4 + 2] * a, 0.f, 255.f); // B
+						data[x * 4 + 0] = (uint8_t)std::clamp(data[x * 4 + 0] * a, 0.f, 255.f); // R
+						data[x * 4 + 1] = (uint8_t)std::clamp(data[x * 4 + 1] * a, 0.f, 255.f); // G
+						data[x * 4 + 2] = (uint8_t)std::clamp(data[x * 4 + 2] * a, 0.f, 255.f); // B
 					}
 					data += locked->pitch;
 				}

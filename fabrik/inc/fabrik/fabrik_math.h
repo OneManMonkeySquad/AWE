@@ -5,17 +5,6 @@ namespace math {
 	constexpr float degrees_to_rad = ALLEGRO_PI / 180.0;
 
 	template<typename T>
-	constexpr T clamp(T val, T min, T max) {
-		if (val < min)
-			return min;
-
-		if (val > max)
-			return max;
-
-		return val;
-	}
-
-	template<typename T>
 	constexpr T lerp(T a, T b, float t) {
 		return a + t * (b - a);
 	}

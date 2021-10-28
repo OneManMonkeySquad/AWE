@@ -3,6 +3,7 @@ workspace "AWE"
    configurations { "Debug", "Release" }
    vectorextensions "SSE2"
    rtti "Off"
+   startproject "game"
 
 include "deps"
 include "fabrik"

@@ -130,7 +130,7 @@ void debugger_draw(scene& scene) {
 	draw_inspector(scene);
 
 	if (scene.registry.valid(selected_entity)) {
-		const auto tr = scene.registry.try_get<transform>(selected_entity);
+		const auto tr = scene.registry.try_get<component::transform>(selected_entity);
 		if (tr) {
 			const auto color = math::color::green;
 			debug::draw_world_line(scene, tr->position + math::vector2{ 20, -20 }, tr->position + math::vector2{ 20, 20 }, color);
@@ -141,7 +141,7 @@ void debugger_draw(scene& scene) {
 	}
 
 	if (scene.registry.valid(hovered_entity)) {
-		const auto tr = scene.registry.try_get<transform>(hovered_entity);
+		const auto tr = scene.registry.try_get<component::transform>(hovered_entity);
 		if (tr) {
 			const auto color = math::color{ 255, 255, 255, 100 };
 			debug::draw_world_line(scene, tr->position + math::vector2{ 20, -20 }, tr->position + math::vector2{ 20, 20 }, color);

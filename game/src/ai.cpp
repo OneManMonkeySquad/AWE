@@ -41,10 +41,11 @@ struct ai_global_data {
 
 using plan = std::vector<uint8_t>;
 
-struct ai_agent_system_data {
-	plan plans[2];
-};
-
+namespace component {
+	struct ai_agent_system_data {
+		plan plans[2];
+	};
+}
 
 plan create_plan(const ai_global_actions& actions, ai_world_state curr_state, ai_world_state target_state);
 
@@ -91,7 +92,7 @@ void add_action(ai_global_actions& actions, const char* name, ai_world_state pre
 
 void init_ai(scene& scene) {
 	auto& global_data = scene.registry.ctx_or_set<ai_global_data>();
-	global_data.ai_agent_created.connect(scene.registry, entt::collector.group<ai_agent>());
+	global_data.ai_agent_created.connect(scene.registry, entt::collector.group<component::ai_agent>());
 
 
 	//////////////////////////////////// Low Level ////////////////////////////////////
@@ -129,14 +130,14 @@ void update_ai(scene& scene) {
 	ai_global_data& global_data = scene.registry.ctx<ai_global_data>();
 
 	global_data.ai_agent_created.each([&](entt::entity e) {
-		scene.registry.emplace<ai_agent_system_data>(e);
+		scene.registry.emplace<component::ai_agent_system_data>(e);
 	});
 
-	auto ai_agents = scene.registry.view<ai_agent, ai_agent_system_data, transform>();
+	auto ai_agents = scene.registry.view<component::ai_agent, component::ai_agent_system_data, component::transform>();
 	for (auto agent_entity : ai_agents) {
-		auto& agent = ai_agents.get<ai_agent>(agent_entity);
-		auto& agent_system_data = ai_agents.get<ai_agent_system_data>(agent_entity);
-		const auto& agent_transform = scene.registry.get<transform>(agent_entity);
+		auto& agent = ai_agents.get<component::ai_agent>(agent_entity);
+		auto& agent_system_data = ai_agents.get<component::ai_agent_system_data>(agent_entity);
+		const auto& agent_transform = scene.registry.get<component::transform>(agent_entity);
 
 		agent.hunger = std::min(agent.hunger + 0.005f, 1.f);
 		debug::draw_world_text(scene, agent_transform.position + math::vector2{ 20, 20 }, std::format("hunger={:.2}", agent.hunger));
@@ -205,7 +206,7 @@ void update_ai(scene& scene) {
 				curr_state.push_back(make_world_property(ai_property::is_hungry, hungry));
 
 				bool can_see_meat = false;
-				scene.registry.view<item>().each([&](auto& item) {
+				scene.registry.view<component::item>().each([&](auto& item) {
 					if (item.type == item_type::meat) {
 						can_see_meat = true;
 					}

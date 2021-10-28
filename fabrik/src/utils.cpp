@@ -30,12 +30,21 @@ void print(std::string_view str) {
 		buff[str.size() + 1] = '\0';
 
 		OutputDebugStringA(buff);
+		puts(buff);
 	}
 	else {
 		const auto buff = std::format("{}\n", str);
 
 		OutputDebugStringA(buff.c_str());
+		puts(buff.c_str());
 	}
+}
+
+void create_console_window() {
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
 }
 
 

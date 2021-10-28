@@ -1,1 +1,1 @@
-game_Debug.exe -s
+start game_Debug.exe -s

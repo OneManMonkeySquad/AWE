@@ -1,20 +1,20 @@
 #include "pch.h"
-#include "resource_manager.h"
+#include "allegro_resource_manager.h"
 #include "dir_watcher.h"
 #include "bitmap_reader.h"
 
 // http://bitsquid.blogspot.com/2011/12/platform-specific-resources.html
 
-resource_manager::resource_manager(std::string data_path)
+allegro_resource_manager::allegro_resource_manager(std::string data_path)
 	: _data_path{ data_path } {
 	discover_all_bitmap_resources();
 
 	_dir_watcher = std::make_unique<dir_watcher>(std::filesystem::absolute(data_path));
 }
 
-resource_manager::~resource_manager() {}
+allegro_resource_manager::~allegro_resource_manager() {}
 
-void resource_manager::begin_frame() {
+void allegro_resource_manager::begin_frame() {
 	if (_dir_watcher->is_directory_dirty()) {
 		_dir_watcher->reset_directory_dirty();
 		discover_all_bitmap_resources();
@@ -22,7 +22,7 @@ void resource_manager::begin_frame() {
 	}
 }
 
-void resource_manager::reload_all_sprite_bitmaps() {
+void allegro_resource_manager::reload_all_sprite_bitmaps() {
 	for (const auto& entry : _bitmap_resource_hash_runtime_idx_map) {
 		const auto& path = _bitmap_reverse_map[entry.first];
 		auto bitmap = bitmap_reader::load_bitmap(_data_path + path);
@@ -30,7 +30,7 @@ void resource_manager::reload_all_sprite_bitmaps() {
 	}
 }
 
-bitmap_id resource_manager::load_bitmap_resource(entt::hashed_string path_relative_to_data) {
+bitmap_id allegro_resource_manager::load_bitmap_resource(entt::hashed_string path_relative_to_data) {
 	const auto it = _bitmap_resource_hash_runtime_idx_map.find(path_relative_to_data);
 	if (it != _bitmap_resource_hash_runtime_idx_map.end())
 		return { it->second, path_relative_to_data.value() };
@@ -47,15 +47,15 @@ bitmap_id resource_manager::load_bitmap_resource(entt::hashed_string path_relati
 	return { id, path_relative_to_data.value() };
 }
 
-ALLEGRO_BITMAP* resource_manager::get_bitmap_by_id(bitmap_id id) {
+ALLEGRO_BITMAP* allegro_resource_manager::get_bitmap_by_id(bitmap_id id) {
 	return _bitmaps[id.runtime_idx];
 }
 
-ALLEGRO_FONT* resource_manager::load_font(const char* path) {
+ALLEGRO_FONT* allegro_resource_manager::load_font(const char* path) {
 	return al_load_ttf_font((_data_path + path).c_str(), 18, 0);
 }
 
-std::optional<std::string> resource_manager::lookup_resource_path_by_hash(uint32_t hash) {
+std::optional<std::string> allegro_resource_manager::lookup_resource_path_by_hash(uint32_t hash) {
 	auto it = _bitmap_reverse_map.find(hash);
 	if (it == _bitmap_reverse_map.end())
 		return {};
@@ -63,7 +63,7 @@ std::optional<std::string> resource_manager::lookup_resource_path_by_hash(uint32
 	return it->second;
 }
 
-void resource_manager::discover_all_bitmap_resources() {
+void allegro_resource_manager::discover_all_bitmap_resources() {
 	_bitmap_reverse_map.clear();
 
 	for (auto const& dir_entry : std::filesystem::recursive_directory_iterator{ _data_path }) {

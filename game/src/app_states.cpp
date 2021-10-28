@@ -45,8 +45,8 @@ namespace app_states {
 	void server_host::tick() {
 		auto& scene = _engine.get_scene_manager().get_first_scene();
 
-		for (auto [e, pawn] : scene.registry.view<pawn>().each()) {
-			auto& tick_input = scene.registry.get_or_emplace<pawn_tick_input>(e);
+		for (auto [e, pawn] : scene.registry.view<component::pawn>().each()) {
+			auto& tick_input = scene.registry.get_or_emplace<component::pawn_tick_input>(e);
 			tick_input.tick_input = _inputs[pawn.client_idx];
 		}
 
@@ -188,11 +188,11 @@ namespace app_states {
 					const auto input = inputs->inputs[i];
 
 					// O(N^2)
-					for (auto [e, pawn] : scene.registry.view<pawn>().each()) {
+					for (auto [e, pawn] : scene.registry.view<component::pawn>().each()) {
 						if (pawn.client_idx != client_idx)
 							continue;
 
-						auto& tick_input = scene.registry.get_or_emplace<pawn_tick_input>(e);
+						auto& tick_input = scene.registry.get_or_emplace<component::pawn_tick_input>(e);
 						tick_input.tick_input = input;
 					}
 				}
@@ -213,13 +213,13 @@ namespace app_states {
 		auto current_tick = game_get_tick(scene);
 		send_tick_input(current_tick, _current_input);
 
-		auto& ps = scene.registry.ctx<global_state>();
+		auto& ps = scene.registry.ctx<component::global_state>();
 
-		for (auto [e, pawn] : scene.registry.view<pawn>().each()) {
+		for (auto [e, pawn] : scene.registry.view<component::pawn>().each()) {
 			if (pawn.client_idx != ps.local_client_idx)
 				continue;
 
-			auto& tick_input = scene.registry.get_or_emplace<pawn_tick_input>(e);
+			auto& tick_input = scene.registry.get_or_emplace<component::pawn_tick_input>(e);
 			tick_input.tick_input = _current_input;
 		}
 
@@ -232,11 +232,11 @@ namespace app_states {
 	}
 
 	void client_ingame::update_camera(scene& scene) {
-		auto& cam = scene.registry.ctx<camera>();
-		auto& ps = scene.registry.ctx<global_state>();
+		auto& cam = scene.registry.ctx<component::camera>();
+		auto& ps = scene.registry.ctx<component::global_state>();
 
 
-		for (auto [e, p, tf] : scene.registry.view<pawn, transform>().each()) {
+		for (auto [e, p, tf] : scene.registry.view<component::pawn, component::transform>().each()) {
 			if (p.client_idx != ps.local_client_idx)
 				continue;
 
@@ -248,7 +248,7 @@ namespace app_states {
 		auto& input = _engine.get_input();
 
 		game_input game_input;
-		if (input.get_current_input_method() == keyboard_mouse) {
+		if (input.get_current_input_method() == input_method::keyboard_mouse) {
 			game_input.up = input.is_key_down(ALLEGRO_KEY_W);
 			game_input.down = input.is_key_down(ALLEGRO_KEY_S);
 			game_input.left = input.is_key_down(ALLEGRO_KEY_A);
@@ -257,10 +257,10 @@ namespace app_states {
 		else {
 			auto x_axis = input.get_joystick_axis(input_xbox_left_stick, 0);
 			auto y_axis = input.get_joystick_axis(input_xbox_left_stick, 1);
-			game_input.up = x_axis > 0.25f;
-			game_input.down = x_axis < -0.25f;
-			game_input.left = y_axis > 0.25f;
-			game_input.right = y_axis < -0.25f;
+			game_input.up = y_axis > 0.25f;
+			game_input.down = y_axis < -0.25f;
+			game_input.left = x_axis > 0.25f;
+			game_input.right = x_axis < -0.25f;
 		}
 		return game_input;
 	}

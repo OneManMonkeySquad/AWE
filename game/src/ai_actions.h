@@ -3,7 +3,9 @@
 #include "game.h"
 
 
-struct ai_agent;
+namespace component {
+	struct ai_agent;
+}
 
 
 enum class action_result {
@@ -14,7 +16,7 @@ enum class action_result {
 
 
 struct action_context {
-	ai_agent& agent;
+	component::ai_agent& agent;
 	entt::entity agent_entity;
 };
 
