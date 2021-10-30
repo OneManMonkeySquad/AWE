@@ -10,8 +10,7 @@ namespace component {
 
 		template<typename Archive>
 		void serialize(Archive& archive) {
-			archive(position);
-			archive(angle);
+			archive(position, angle);
 		}
 	};
 }

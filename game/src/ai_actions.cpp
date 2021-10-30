@@ -24,9 +24,9 @@ bool goto_target(scene& scene, action_context& ctx) {
 
 
 action_result hunt_deer(scene& scene, action_context& ctx) {
-	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<component::deer>(ctx.agent.target);
+	auto target_invalid = !scene.registry.valid(ctx.agent.target) || !scene.registry.all_of<component::animal>(ctx.agent.target);
 	if (target_invalid) {
-		auto deers = scene.registry.view<component::deer>();
+		auto deers = scene.registry.view<component::animal>();
 		if (deers.empty())
 			return action_result::failed;
 
@@ -70,6 +70,8 @@ action_result pickup_meat(scene& scene, action_context& ctx) {
 
 
 action_result eat_meat(scene& scene, action_context& ctx) {
+	auto agent = scene.get(ctx.agent_entity);
+
 	auto& inv = scene.registry.get<component::inventory>(ctx.agent_entity);
 
 	if (!inventory_has_item_of_type(scene, ctx.agent_entity, item_type::meat))

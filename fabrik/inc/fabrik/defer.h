@@ -17,7 +17,6 @@ namespace detail {
 		F f;
 	};
 
-	/// @see CScopeGuard
 	struct defer_impl_helper {
 		template<typename F>
 		inline defer_impl<F> operator<<(const F& lambda) {

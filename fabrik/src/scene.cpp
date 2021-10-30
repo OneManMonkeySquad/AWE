@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "scene.h"
+#include "entity.h"
 
 entity scene::create_entity() {
 	return { *this, registry.create() };

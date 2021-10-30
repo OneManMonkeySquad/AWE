@@ -85,6 +85,12 @@ project "psd_sdk"
 		"psd_sdk/src/Psd/**.cpp",
 		"psd_sdk/src/Psd/**.c"
 	}
+	removefiles {
+		"psd_sdk/src/Psd/PsdNativeFile_Linux.cpp",
+		"psd_sdk/src/Psd/PsdNativeFile_Linux.h",
+		"psd_sdk/src/Psd/PsdNativeFile_Mac.h"
+	}
+
 	--pchheader "PsdPch.h"
 	--pchsource "psd_sdk/src/Psd/PsdPch.cpp"
 

@@ -17,6 +17,8 @@ void panic(error err);
 void yield();
 
 std::wstring to_wstring(std::string_view str);
+std::vector<std::string_view> split_string(std::string_view str, char delimiter);
+std::optional<int> parse_int(std::string_view str);
 
 void print(std::string_view str);
 template <class... Ts>

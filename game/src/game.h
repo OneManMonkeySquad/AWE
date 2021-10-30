@@ -1,7 +1,7 @@
+
 #pragma once
 
 class engine;
-class input;
 namespace network_messages {
 	struct initial_game_state_end;
 }
@@ -11,11 +11,27 @@ struct game_input {
 	bool right;
 	bool up;
 	bool down;
+	// LMB or A
+	bool action0;
+
+	template <typename Stream>
+	bool Serialize(Stream& stream) {
+		serialize_bool(stream, left);
+		serialize_bool(stream, right);
+		serialize_bool(stream, up);
+		serialize_bool(stream, down);
+		serialize_bool(stream, action0);
+		return true;
+	}
 };
 
-
-
 enum class item_type { axe, meat, wood };
+
+enum class animal_state : uint8_t {
+	idle,
+	going_to_grass,
+	eating_grass
+};
 
 namespace component {
 	struct global_state {
@@ -24,9 +40,9 @@ namespace component {
 	};
 
 	struct velocity {
-		float dx;
-		float dy;
-		float angular;
+		float dx = 0;
+		float dy = 0;
+		float angular = 0;
 
 		template<typename Archive>
 		void serialize(Archive& archive) {
@@ -55,17 +71,26 @@ namespace component {
 	};
 
 	struct tree {};
-	struct grass {};
-	struct deer {};
-	struct kill {};
-	struct dead_deer {};
-
-	struct pawn {
-		int client_idx;
+	struct animal_edible {};
+	struct animal {
+		entt::entity current_target;
+		animal_state state;
+		uint32_t eating_ticks;
 
 		template<typename Archive>
 		void serialize(Archive& archive) {
-			archive(client_idx);
+			archive(state);
+		}
+	};
+	struct kill {};
+
+	struct pawn {
+		int client_idx = -1;
+		uint32_t cooldown_ticks = 0;
+
+		template<typename Archive>
+		void serialize(Archive& archive) {
+			archive(client_idx, cooldown_ticks);
 		}
 	};
 

@@ -22,6 +22,59 @@ std::wstring to_wstring(std::string_view str) {
 	return { ws.get() };
 }
 
+std::vector<std::string_view> split_string(std::string_view str, char delimiter) {
+	std::vector<std::string_view> result;
+
+	size_t last = 0;
+	for (int i = 0; i < str.size(); ++i) {
+		if (str[i] == delimiter) {
+			result.emplace_back(str.substr(last, i - last));
+			last = i + 1;
+		}
+	}
+	if (last < str.size()) {
+		result.emplace_back(str.substr(last));
+	}
+
+	return result;
+}
+
+std::optional<int> parse_int(std::string_view str) {
+	int sign = 1, base = 0, i = 0;
+
+	// if whitespaces then ignore.
+	while (std::isspace(str[i])) {
+		i++;
+		if (i >= str.size())
+			return {};
+	}
+
+	// sign of number
+	if (str[i] == '-' || str[i] == '+') {
+		sign = 1 - 2 * (str[i++] == '-');
+
+		if (i >= str.size())
+			return {};
+	}
+
+	// checking for valid input
+	while (str[i] >= '0' && str[i] <= '9') {
+		// handling overflow test case
+		if (base > INT_MAX / 10
+			|| (base == INT_MAX / 10
+				&& str[i] - '0' > 7)) {
+			if (sign == 1)
+				return INT_MAX;
+			else
+				return INT_MIN;
+		}
+		base = 10 * base + (str[i++] - '0');
+		if (i >= str.size())
+			break;
+	}
+	return base * sign;
+}
+
 void print(std::string_view str) {
 	if (str.size() < 256 - 3) {
 		char buff[256];

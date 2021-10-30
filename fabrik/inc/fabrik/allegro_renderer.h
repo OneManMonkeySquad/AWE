@@ -9,15 +9,17 @@ public:
 	allegro_renderer(std::string window_title);
 	~allegro_renderer();
 
-	void initialize(engine* engine);
+	void initialize(engine* engine) override;
 
-	void begin_frame();
-	void render(const component::camera cam, const entt::registry& registry);
+	void begin_frame() override;
+	void tick() override;
 
-	entt::registry clone_for_rendering(const scene& scene);
+	void render(const component::camera cam, const entt::registry& registry) override;
+
+	entt::registry clone_for_rendering(const scene& scene) override;
 	entt::registry interpolate_for_rendering(const entt::registry& current_registry,
 											 const entt::registry& previous_registry,
-											 float a);
+											 float a) override;
 
 private:
 	std::string _window_title;

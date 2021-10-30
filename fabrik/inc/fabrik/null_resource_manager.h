@@ -18,6 +18,14 @@ public:
 		return nullptr;
 	}
 
+	bitmap_id load_anim_resource(entt::hashed_string path_relative_to_data) override {
+		return { (uint16_t)-1, path_relative_to_data.value() };
+	}
+
+	spritesheet* get_anim_by_id(bitmap_id id) override {
+		return nullptr;
+	}
+
 	ALLEGRO_FONT* load_font(const char* path) override {
 		return nullptr;
 	}

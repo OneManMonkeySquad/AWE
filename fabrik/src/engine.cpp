@@ -67,6 +67,8 @@ void engine::begin_frame() {
 
 void engine::tick() {
 	_app_state_manager->tick();
+
+	_renderer->tick();
 }
 
 renderer& engine::get_renderer() const {

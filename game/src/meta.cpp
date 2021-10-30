@@ -48,9 +48,16 @@ void init_meta() {
 		.ctor();
 
 
-	entt::meta<component::deer>()
+	entt::meta<component::animal>()
 		.type("deer"_hs)
 		.prop("hierarchy_tag"_hs, (const char*)"Deer")
+
+		.ctor();
+
+
+	entt::meta<component::animal_edible>()
+		.type("animal_edible"_hs)
+		.prop("hierarchy_tag"_hs, (const char*)"Animal Edible")
 
 		.ctor();
 

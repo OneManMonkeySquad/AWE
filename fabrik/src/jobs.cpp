@@ -31,7 +31,7 @@ namespace jobs {
 			SwitchToFiber(thread_main_fiber);
 		}
 
-		void fiber_thread(context* ctx, const int thread_idx) {
+		void fiber_thread(threadpool_executor* ctx, const int thread_idx) {
 			static thread_local std::string thread_name = std::format("fiber worker {}", thread_idx);
 			debug::set_current_thread_name(thread_name.c_str());
 
@@ -98,7 +98,7 @@ namespace jobs {
 		}
 	}
 
-	void context::run_blocking() {
+	void threadpool_executor::run_blocking() {
 		const auto num_threads = std::thread::hardware_concurrency();
 
 		for (size_t i = 0; i < num_threads - 1; ++i) {
@@ -115,7 +115,7 @@ namespace jobs {
 		fiber_thread(this, 0);
 	}
 
-	context::~context() {
+	threadpool_executor::~threadpool_executor() {
 		for (int i = 0; i < _threads.size(); ++i) {
 			job_queue.enqueue({ nullptr, nullptr });
 		}
@@ -162,7 +162,7 @@ namespace jobs {
 		fabrik_assert(*cnt == 0);
 	}
 
-	void read_file_thread(std::string path, void* buffer, size_t* len, counter* cnt) {
+	void read_file_thread(std::string path, uint8_t** out_buffer, size_t* out_size, counter* cnt) {
 		SetThreadDescription(GetCurrentThread(), L"fiber read file thread");
 
 		auto file = CreateFileA(path.c_str(),
@@ -172,32 +172,68 @@ namespace jobs {
 								OPEN_EXISTING,
 								0,
 								nullptr);
+		defer{ CloseHandle(file); };
+
+		LARGE_INTEGER size;
+		if (!GetFileSizeEx(file, &size))
+			panic("GetFileSize failed");
+
+		if (size.HighPart > 0)
+			panic("large files not implemented");
+
+		auto buffer = new uint8_t[size.LowPart];
 
 		DWORD read;
-		if (!ReadFile(file, buffer, (DWORD)*len, &read, nullptr))
+		if (!ReadFile(file, buffer, size.LowPart, &read, nullptr))
 			panic("ReadFile failed");
 
-		*len = read;
-
-		CloseHandle(file);
+		*out_buffer = buffer;
+		*out_size = read;
 
 		--(*cnt);
 	}
 
 	std::string read_file(std::string path) {
-		size_t len = 1024;
+		uint8_t* buffer;
+		size_t size;
 
-		std::string result;
-		result.resize(len);
+#if 1
+		{
+			auto file = CreateFileA(path.c_str(),
+									GENERIC_READ,
+									FILE_SHARE_READ,
+									nullptr,
+									OPEN_EXISTING,
+									0,
+									nullptr);
+			defer{ CloseHandle(file); };
 
+			LARGE_INTEGER li;
+			if (!GetFileSizeEx(file, &li))
+				panic("GetFileSize failed");
+
+			if (li.HighPart > 0)
+				panic("large files not implemented");
+
+			buffer = new uint8_t[li.LowPart];
+
+			DWORD read;
+			if (!ReadFile(file, buffer, li.LowPart, &read, nullptr))
+				panic("ReadFile failed");
+
+			size = read;
+		}
+#else
 		{
 			counter cnt2 = 1;
-			std::thread thread{ read_file_thread, path, result.data(), &len, &cnt2 };
+			std::thread thread{ read_file_thread, path, &buffer, &size, &cnt2 };
 			thread.detach();
 			wait_for_counter(&cnt2);
 		}
+#endif
 
-		result.resize(len);
+		std::string result{ buffer, buffer + size };
+		delete[] buffer;
 
 		return result;
 	}

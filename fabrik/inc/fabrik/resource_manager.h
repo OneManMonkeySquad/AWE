@@ -1,6 +1,8 @@
 
 #pragma once
 
+struct spritesheet;
+
 struct bitmap_id {
 	uint16_t runtime_idx;
 	uint32_t resource_hash;
@@ -10,6 +12,8 @@ struct bitmap_id {
 		archive(runtime_idx, resource_hash);
 	}
 };
+
+
 
 class resource_manager {
 public:
@@ -21,6 +25,9 @@ public:
 
 	virtual bitmap_id load_bitmap_resource(entt::hashed_string path_relative_to_data) = 0;
 	virtual ALLEGRO_BITMAP* get_bitmap_by_id(bitmap_id id) = 0;
+
+	virtual bitmap_id load_anim_resource(entt::hashed_string path_relative_to_data) = 0;
+	virtual spritesheet* get_anim_by_id(bitmap_id id) = 0;
 
 	virtual ALLEGRO_FONT* load_font(const char* path) = 0;
 

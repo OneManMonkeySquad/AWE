@@ -253,6 +253,7 @@ namespace app_states {
 			game_input.down = input.is_key_down(ALLEGRO_KEY_S);
 			game_input.left = input.is_key_down(ALLEGRO_KEY_A);
 			game_input.right = input.is_key_down(ALLEGRO_KEY_D);
+			game_input.action0 = input.is_mouse_button_down(0);
 		}
 		else {
 			auto x_axis = input.get_joystick_axis(input_xbox_left_stick, 0);
@@ -261,13 +262,13 @@ namespace app_states {
 			game_input.down = y_axis < -0.25f;
 			game_input.left = x_axis > 0.25f;
 			game_input.right = x_axis < -0.25f;
+			game_input.action0 = input.get_joystick_button(0);
 		}
 		return game_input;
 	}
 
 	void client_ingame::send_tick_input(size_t tick, game_input input) {
 		auto msg = (network_messages::tick_input*)_engine.get_network().get_client().CreateMessage(TICK_INPUT_MESSAGE);
-		msg->tick = tick;
 		msg->input = input;
 
 		_engine.get_network().get_client().SendMessage(0, msg);

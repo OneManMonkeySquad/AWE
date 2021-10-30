@@ -100,6 +100,9 @@
 /* Define if XRandR extension is supported. */
 /* #undef ALLEGRO_XWINDOWS_WITH_XRANDR */
 
+/* Define if XScreenSaver extension is supported. */
+/* #undef ALLEGRO_XWINDOWS_WITH_XSCREENSAVER */
+
 /* Define if XIM extension is supported. */
 /* #undef ALLEGRO_XWINDOWS_WITH_XIM */
 
@@ -116,6 +119,9 @@
 
 /* Define if we are building with SDL backend. */
 /* #undef ALLEGRO_SDL */
+
+/* Define if sleep should be used instead of threads (only useful for emscripten without web workers) */
+/* #undef ALLEGRO_WAIT_EVENT_SLEEP */
 
 /*---------------------------------------------------------------------------*/
 /* vi: set ft=c ts=3 sts=3 sw=3 et: */

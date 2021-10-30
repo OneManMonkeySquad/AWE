@@ -23,8 +23,20 @@ int allegro_input::get_mouse_wheel() const {
 	return _mouseWheel;
 }
 
+bool allegro_input::is_mouse_button_down(int button) const {
+	return _mouse_button[button];
+}
+
+math::vector2 allegro_input::get_mouse_position() const {
+	return _mouse_position;
+}
+
 float allegro_input::get_joystick_axis(int stick, int axis) const {
 	return _joystick_axis[stick][axis];
+}
+
+bool allegro_input::get_joystick_button(int button) const {
+	return _joystick_buttons[button];
 }
 
 void allegro_input::begin_frame() {
@@ -70,8 +82,18 @@ void allegro_input::on_event(ALLEGRO_EVENT ev) {
 
 	case ALLEGRO_EVENT_MOUSE_AXES:
 		if (!io.WantCaptureMouse) {
+			_mouse_position.x = ev.mouse.x;
+			_mouse_position.y = ev.mouse.y;
 			_mouseWheel = ev.mouse.dz;
 		}
+		break;
+
+	case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+		_mouse_button[ev.mouse.button - 1] = true;
+		break;
+
+	case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+		_mouse_button[ev.mouse.button - 1] = false;
 		break;
 
 	case ALLEGRO_EVENT_JOYSTICK_AXIS:

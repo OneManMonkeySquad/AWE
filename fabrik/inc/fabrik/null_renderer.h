@@ -5,9 +5,11 @@
 
 class null_renderer : public renderer {
 public:
-	void initialize(engine* engine) override;
+	void initialize(engine* engine) override {}
 
-	void begin_frame() override;
+	void begin_frame() override {}
+	void tick() override {}
+
 	void render(const component::camera cam, const entt::registry& game_state) override;
 
 	entt::registry clone_for_rendering(const scene& scene) override;

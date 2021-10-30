@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "meta.h"
 #include "game.h"
-#include "editor.h"
+#include "debugger.h"
 #include "game_network_adapter.h"
 #include "app_states.h"
 #include "fabrik/allegro_resource_manager.h"
@@ -66,13 +66,13 @@ void run_game(engine& engine) {
 		}
 
 		if (draw_debugger) {
-			debugger_draw(main_scene);
+			debugger_draw(engine, main_scene);
 		}
 		{
 			const auto a = static_cast<float>(game_lag.count() / game_timestep.count());
 			fabrik_assert(a >= 0 && a <= 1);
 
-			const auto interpolated_rendable_registry = renderer.interpolate_for_rendering(main_scene.registry, previous_rendable_registry, a);
+			auto interpolated_rendable_registry = renderer.interpolate_for_rendering(main_scene.registry, previous_rendable_registry, a);
 
 			const auto& cam = main_scene.registry.ctx<component::camera>();
 			renderer.render(cam, interpolated_rendable_registry);
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 		panic("AWE init failed");
 	defer{ awe_shutdown(); };
 
-	jobs::context ctx;
+	jobs::threadpool_executor executor;
 
 	cxxopts::Options options("AWE", "Description");
 	options.add_options()
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 	jobs::counter cnt;
 	jobs::run_all(jobs, &cnt);
 
-	ctx.run_blocking();
+	executor.run_blocking();
 
 	return 0;
 }

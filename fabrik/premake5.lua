@@ -8,8 +8,9 @@ project "fabrik"
     objdir "%{wks.location}/obj"
 
     files {
-        "inc/**.h",
-        "src/**.cpp"
+        "inc/fabrik/**.h",
+        "src/**.h",
+        "src/**.cpp",
     }
 
     includedirs {

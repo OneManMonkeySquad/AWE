@@ -2,6 +2,10 @@
 #include "fabrik_math.h"
 
 namespace math {
+	vector2 vector2::normalised() const {
+		return *this / magnitude();
+	}
+
 	vector2 operator+(vector2 l, vector2 r) {
 		return { l.x + r.x, l.y + r.y };
 	}

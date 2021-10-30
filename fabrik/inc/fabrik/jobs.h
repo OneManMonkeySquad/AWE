@@ -21,10 +21,10 @@ namespace jobs {
 		counter* cnt;
 	};
 
-	class context {
+	class threadpool_executor {
 	public:
-		context() = default;
-		~context();
+		threadpool_executor() = default;
+		~threadpool_executor();
 
 		void run_blocking();
 

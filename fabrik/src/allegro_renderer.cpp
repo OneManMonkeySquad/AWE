@@ -10,6 +10,7 @@
 #include "transform.h"
 #include "imgui\backends\imgui_impl_allegro5.h"
 #include "scene.h"
+#include "scene_manager.h"
 
 allegro_renderer::allegro_renderer(std::string window_title)
 	: _window_title(window_title) {}
@@ -29,7 +30,7 @@ void allegro_renderer::initialize(engine* engine) {
 		!al_init_ttf_addon())
 		panic("Allegro addon init failed");
 
-	al_set_new_display_flags(ALLEGRO_WINDOWED); // ALLEGRO_FRAMELESS
+	al_set_new_display_flags(ALLEGRO_WINDOWED);
 	_display = al_create_display(800, 600);
 	al_set_window_title(_display, _window_title.c_str());
 
@@ -65,6 +66,23 @@ void allegro_renderer::begin_frame() {
 	ImGui::NewFrame();
 }
 
+void allegro_renderer::tick() {
+	auto& scene = _engine->get_scene_manager().get_first_scene();
+
+	for (auto [e, animated_sprite] : scene.registry.view<component::animated_sprite>().each()) {
+		if (animated_sprite.ticks_till_next_frame > 0) {
+			--animated_sprite.ticks_till_next_frame;
+		}
+		else {
+			auto anim = _engine->get_resource_manager().get_anim_by_id(animated_sprite.spritesheet);
+
+			animated_sprite.current_frame = (animated_sprite.current_frame + 1) % anim->animations[animated_sprite.animation_idx].size();
+
+			animated_sprite.ticks_till_next_frame = 10;
+		}
+	}
+}
+
 void allegro_renderer::render(const component::camera cam, const entt::registry& registry) {
 	ZoneScoped;
 
@@ -89,8 +107,10 @@ void allegro_renderer::render(const component::camera cam, const entt::registry&
 	{
 		ZoneScopedN("Tilemap");
 
-		al_hold_bitmap_drawing(1);
-		defer{ al_hold_bitmap_drawing(0); };
+		al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+
+		al_hold_bitmap_drawing(true);
+		defer{ al_hold_bitmap_drawing(false); };
 
 		int x, y;
 		for (y = 0; y < 24; y++) {
@@ -121,18 +141,34 @@ void allegro_renderer::render(const component::camera cam, const entt::registry&
 		});
 
 		{
+			al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+
 			al_hold_bitmap_drawing(true);
 			defer{ al_hold_bitmap_drawing(false); };
 
 			for (auto p : depth_rendable_pairs) {
 				const auto& tr = rendables.get<const component::transform>(p.second);
-				const auto sprite_inst = rendables.get<const component::sprite_instance>(p.second);
+				const auto& sprite_inst = rendables.get<const component::sprite_instance>(p.second);
 				const auto bitmap = _engine->get_resource_manager().get_bitmap_by_id(sprite_inst.bitmap);
 
-				const auto w = al_get_bitmap_width(bitmap);
-				const auto h = al_get_bitmap_height(bitmap);
+				auto animated_sprite = registry.try_get<component::animated_sprite>(p.second);
 
-				al_draw_rotated_bitmap(bitmap, w * 0.5f, h * 0.5f, tr.position.x, tr.position.y, tr.angle * math::degrees_to_rad, 0);
+				if (animated_sprite != nullptr) {
+					const auto anim = _engine->get_resource_manager().get_anim_by_id(animated_sprite->spritesheet);
+					const auto& entry = anim->animations[animated_sprite->animation_idx];
+					const auto& frame = entry[animated_sprite->current_frame % entry.size()]; // nochmal modulo falls wird die animation gewechselt haben
+
+					al_draw_bitmap_region(bitmap, frame.position.x, frame.position.y, frame.size.x, frame.size.y, tr.position.x, tr.position.y, 0);
+				}
+				else if (fabs(tr.angle) > 0.01f) {
+					const auto w = al_get_bitmap_width(bitmap);
+					const auto h = al_get_bitmap_height(bitmap);
+
+					al_draw_rotated_bitmap(bitmap, w * 0.5f, h * 0.5f, tr.position.x, tr.position.y, tr.angle * math::degrees_to_rad, 0);
+				}
+				else {
+					al_draw_bitmap(bitmap, tr.position.x, tr.position.y, 0);
+				}
 			}
 		}
 	}
@@ -217,6 +253,10 @@ entt::registry allegro_renderer::clone_for_rendering(const scene& scene) {
 		auto view = scene.registry.view<const component::sprite_instance>();
 		cloned_registry.insert(view.data(), view.data() + view.size(), view.raw());
 	}
+	{
+		auto view = scene.registry.view<const component::animated_sprite>();
+		cloned_registry.insert(view.data(), view.data() + view.size(), view.raw());
+	}
 	return cloned_registry;
 }
 
@@ -241,6 +281,11 @@ entt::registry allegro_renderer::interpolate_for_rendering(const entt::registry&
 		auto interp_e = interpolated_registry.create();
 		interpolated_registry.emplace<component::transform>(interp_e, interp_pos, interp_angle);
 		interpolated_registry.emplace<component::sprite_instance>(interp_e, sp);
+
+		auto anim_e = current_registry.try_get<component::animated_sprite>(e);
+		if (anim_e) {
+			interpolated_registry.emplace<component::animated_sprite>(interp_e, *anim_e);
+		}
 	}
 
 	return interpolated_registry;

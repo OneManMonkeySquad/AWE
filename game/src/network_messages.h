@@ -39,16 +39,11 @@ namespace network_messages {
 	};
 
 	struct tick_input : public yojimbo::Message {
-		size_t tick;
 		game_input input;
 
 		template <typename Stream>
 		bool Serialize(Stream& stream) {
-			serialize_bool(stream, input.left);
-			serialize_bool(stream, input.right);
-			serialize_bool(stream, input.up);
-			serialize_bool(stream, input.down);
-			return true;
+			return input.Serialize(stream);
 		}
 
 		YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
@@ -71,13 +66,9 @@ namespace network_messages {
 				serialize_int(stream, input_client_indices[i], 0, yojimbo::MaxClients);
 
 				auto& input = inputs[i];
-				serialize_bool(stream, input.left);
-				serialize_bool(stream, input.right);
-				serialize_bool(stream, input.up);
-				serialize_bool(stream, input.down);
+				if (!input.Serialize(stream))
+					return false;
 			}
-
-
 			return true;
 		}
 
